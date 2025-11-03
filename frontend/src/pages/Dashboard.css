@@ -1,0 +1,46 @@
+/* --- Add this to the bottom of Dashboard.css --- */
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.device-card {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.device-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.device-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+.maintenance-list {
+  margin-top: 1rem;
+  border-top: 1px solid #eee;
+  padding-top: 0.75rem;
+}
+
+.maintenance-list strong {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.maintenance-list ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.maintenance-list li {
+  margin-bottom: 0.25rem;
+}

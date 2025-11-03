@@ -1,0 +1,16 @@
+# Node.js dependencies
+# This will ignore node_modules in /backend AND /frontend
+node_modules/
+
+# Frontend build output
+# This will ignore the /frontend/dist folder
+dist/
+
+# Environment files (CRITICAL for security)
+# This will ignore .env in /backend (and anywhere else)
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
