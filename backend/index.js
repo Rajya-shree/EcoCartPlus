@@ -42,6 +42,8 @@ app.use("/api/tasks", require("./routes/taskRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 // Add the new repair shop routes
 app.use("/api/repair-shops", require("./routes/repairShopRoutes"));
+// Add the new YouTube routes
+app.use('/api/youtube', require('./routes/youtubeRoutes'));
 
 // 🟢 NEW: AI Repair Advisor routes 🟢
 // This links the new AI diagnosis logic to the /api/ai endpoint
