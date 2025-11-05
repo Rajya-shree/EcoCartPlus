@@ -9,9 +9,9 @@ export default defineConfig({
     proxy: {
       // This proxies any request starting with /api
       '/api': {
-        target: 'http://localhost:5001', // Your backend server
+        target: 'https://ecocartplus-backend.onrender.com', // Your backend server
         changeOrigin: true,
-        secure: false, 
+        secure: true, 
       },
     },
   },
