@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; // Import our auth hook
 import { toast } from "react-toastify";
 import "./Header.css"; // Import the CSS
+import NotificationBell from "./NotificationBell.jsx";
 //import logo from "R:FINAL YEAR PROJECTai-repair-assistant\frontendpublicECOCART+ Robot Mascot.png";
 
 const Header = () => {
@@ -36,6 +37,7 @@ const Header = () => {
         <Link to="/dashboard" className="header-link">
           LifeCycle Maintenance
         </Link>
+        <NotificationBell />
 
         <nav className="header-nav">
           {userInfo ? (

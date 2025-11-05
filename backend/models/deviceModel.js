@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const deviceSchema = mongoose.Schema(
   {
@@ -6,12 +6,12 @@ const deviceSchema = mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User', // This tells Mongoose to link to the 'User' model
+      ref: "User", // This tells Mongoose to link to the 'User' model
     },
     // Your 'name' field
     deviceName: {
       type: String,
-      required: [true, 'Please add a device name'],
+      required: [true, "Please add a device name"],
     },
     // This is from your plan
     purchaseDate: {
@@ -24,10 +24,18 @@ const deviceSchema = mongoose.Schema(
     category: {
       type: String,
     },
+    repairsDone: {
+      type: Number,
+      default: 0,
+    },
+    ecoScore: {
+      type: Number,
+      default: 0, // Default to 0 if no match is found
+    },
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model('Device', deviceSchema);
+module.exports = mongoose.model("Device", deviceSchema);

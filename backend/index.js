@@ -30,11 +30,17 @@ app.use("/api/repair-guides", require("./routes/repairRoutes"));
 
 // Eco-Product routes
 app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
+4;
+
+app.use("/api/tasks", require("./routes/taskRoutes"));
+
+// Add the new notification routes
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // 🟢 NEW: AI Repair Advisor routes 🟢
 // This links the new AI diagnosis logic to the /api/ai endpoint
-app.use("/api/repair-centers", require("./routes/repairCenterRoutes"));
-app.use("/api/ai", require("./routes/aiRoutes.js"));
+// app.use("/api/repair-centers", require("./routes/repairCenterRoutes"));
+// app.use("/api/ai", require("./routes/aiRoutes.js"));
 
 // --- 4. Add your Error Middleware ---
 // (These must be at the end, after all your routes)
