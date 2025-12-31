@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import Modal from 'react-modal';
-import './Dashboard.css';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+import Modal from "react-modal";
+import "./Dashboard.css";
 
 // Helper function to calculate "Overdue" days
 const getOverdueDays = (dueDate) => {
@@ -16,27 +16,29 @@ const getOverdueDays = (dueDate) => {
 
 // Helper function to format dates
 const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
+  if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString();
 };
 
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 const DashboardScreen = () => {
   const { userInfo } = useAuth();
-  
+
   const [devices, setDevices] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
-  
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isMaintModalOpen, setIsMaintModalOpen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState(null); 
+  const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedDeviceTasks, setSelectedDeviceTasks] = useState([]);
 
   const [deviceName, setDeviceName] = useState("");
   const [deviceModel, setDeviceModel] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [category, setCategory] = useState("Smartphone");
+
+  const [dismissedTasks, setDismissedTasks] = useState([]);
 
   const fetchData = async () => {
     if (!userInfo) return;
@@ -69,7 +71,10 @@ const DashboardScreen = () => {
       await axios.post("/api/devices", deviceData, config);
 
       toast.success("Device added & maintenance scheduled!");
-      setDeviceName(""); setDeviceModel(""); setPurchaseDate(""); setCategory("Smartphone");
+      setDeviceName("");
+      setDeviceModel("");
+      setPurchaseDate("");
+      setCategory("Smartphone");
       setIsAddModalOpen(false);
       fetchData();
     } catch (err) {
@@ -79,7 +84,12 @@ const DashboardScreen = () => {
 
   // --- NEW: DELETE HANDLER ---
   const handleDeleteDevice = async (deviceId) => {
-    if (!window.confirm("Are you sure? This will delete the device and all its tasks.")) return;
+    if (
+      !window.confirm(
+        "Are you sure? This will delete the device and all its tasks."
+      )
+    )
+      return;
 
     const config = {
       headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -93,7 +103,7 @@ const DashboardScreen = () => {
       toast.error(err.response?.data?.message || err.message);
     }
   };
-  
+
   // --- NEW: ADD REPAIR HANDLER ---
   const handleAddRepair = async (deviceId) => {
     const config = {
@@ -107,13 +117,16 @@ const DashboardScreen = () => {
       toast.error(err.response?.data?.message || err.message);
     }
   };
-  
+
   const handleOpenMaintModal = async (device) => {
     const config = {
       headers: { Authorization: `Bearer ${userInfo.token}` },
     };
     try {
-      const { data } = await axios.get(`/api/tasks/device/${device._id}`, config);
+      const { data } = await axios.get(
+        `/api/tasks/device/${device._id}`,
+        config
+      );
       setSelectedDeviceTasks(data);
       setSelectedDevice(device);
       setIsMaintModalOpen(true);
@@ -129,18 +142,25 @@ const DashboardScreen = () => {
     try {
       await axios.put(`/api/tasks/${taskId}/complete`, {}, config);
       toast.success("Task completed!");
-      
-      await fetchData(); 
-      
+
+      await fetchData();
+
       // Re-fetch data for the modal
-      const { data } = await axios.get(`/api/tasks/device/${selectedDevice._id}`, config);
+      const { data } = await axios.get(
+        `/api/tasks/device/${selectedDevice._id}`,
+        config
+      );
       setSelectedDeviceTasks(data);
-      
     } catch (err) {
       toast.error(err.response?.data?.message || err.message);
     }
   };
-  
+
+  const handleComplete = (taskId) => {
+    setDismissedTasks([...dismissedTasks, taskId]);
+    toast.success("Task marked as complete!");
+  };
+
   const totalRepairs = devices.reduce((acc, dev) => acc + dev.repairsDone, 0);
 
   if (!userInfo) {
@@ -153,9 +173,15 @@ const DashboardScreen = () => {
       <div className="dashboard-header">
         <div>
           <h2>Device Lifecycle Tracker</h2>
-          <p>Monitor your devices' health and get automatic maintenance reminders.</p>
+          <p>
+            Monitor your devices' health and get automatic maintenance
+            reminders.
+          </p>
         </div>
-        <button className="add-device-btn" onClick={() => setIsAddModalOpen(true)}>
+        <button
+          className="add-device-btn"
+          onClick={() => setIsAddModalOpen(true)}
+        >
           + Add Device
         </button>
       </div>
@@ -187,14 +213,23 @@ const DashboardScreen = () => {
           <h3>Your Devices</h3>
           <div className="device-list">
             {devices.length === 0 ? (
-              <p>You haven't added any devices yet. Click "+ Add Device" to start.</p>
+              <p>
+                You haven't added any devices yet. Click "+ Add Device" to
+                start.
+              </p>
             ) : (
               devices.map((device) => {
-                const nextTask = upcomingTasks.find(t => t.device._id === device._id);
+                const nextTask = upcomingTasks.find(
+                  (t) => t.device._id === device._id
+                );
                 return (
                   <div key={device._id} className="device-card-v3">
-                    <span className={`status-badge ${device.ecoScore >= 80 ? 'good' : 'fail'}`}>
-                      {device.ecoScore >= 80 ? 'Good' : 'Poor'}
+                    <span
+                      className={`status-badge ${
+                        device.ecoScore >= 80 ? "good" : "fail"
+                      }`}
+                    >
+                      {device.ecoScore >= 80 ? "Good" : "Poor"}
                     </span>
                     <div className="device-card-header">
                       <span className="device-icon">📱</span>
@@ -208,7 +243,7 @@ const DashboardScreen = () => {
                         <h5>
                           {device.repairsDone}
                           {/* --- NEW: ADD REPAIR BUTTON --- */}
-                          <button 
+                          <button
                             className="add-repair-btn"
                             onClick={() => handleAddRepair(device._id)}
                           >
@@ -218,7 +253,9 @@ const DashboardScreen = () => {
                         <p>Repairs</p>
                       </div>
                       <div className="metric-item">
-                        <h5>{nextTask ? formatDate(nextTask.dueDate) : 'N/A'}</h5>
+                        <h5>
+                          {nextTask ? formatDate(nextTask.dueDate) : "N/A"}
+                        </h5>
                         <p>Next Check</p>
                       </div>
                       <div className="metric-item">
@@ -227,13 +264,18 @@ const DashboardScreen = () => {
                       </div>
                     </div>
                     <div className="device-card-footer">
-                      <button className="maint-button" onClick={() => handleOpenMaintModal(device)}>
+                      <button
+                        className="maint-button"
+                        onClick={() => handleOpenMaintModal(device)}
+                      >
                         Maintenance
                       </button>
-                      <button className="trade-in-button" disabled>Trade-in</button>
+                      <button className="trade-in-button" disabled>
+                        Trade-in
+                      </button>
                     </div>
                   </div>
-                )
+                );
               })
             )}
           </div>
@@ -253,14 +295,20 @@ const DashboardScreen = () => {
                   <div key={task._id} className="task-card">
                     <div className="task-info">
                       <strong>{task.taskName}</strong>
-                      <span className="task-device-name">{task.device.deviceName}</span>
+                      <span className="task-device-name">
+                        {task.device.deviceName}
+                      </span>
                       {overdueDays > 0 ? (
-                        <span className="task-due overdue">Overdue by {overdueDays} days</span>
+                        <span className="task-due overdue">
+                          Overdue by {overdueDays} days
+                        </span>
                       ) : (
-                        <span className="task-due">Due: {formatDate(task.dueDate)}</span>
+                        <span className="task-due">
+                          Due: {formatDate(task.dueDate)}
+                        </span>
                       )}
                     </div>
-                    <button 
+                    <button
                       className="task-complete-btn"
                       onClick={() => handleCompleteTask(task._id)}
                     >
@@ -270,6 +318,7 @@ const DashboardScreen = () => {
                 );
               })
             )}
+            
           </div>
         </div>
       </div>
@@ -283,21 +332,39 @@ const DashboardScreen = () => {
       >
         <div className="modal-header">
           <h2>Add a New Device</h2>
-          <button className="modal-close-btn" onClick={() => setIsAddModalOpen(false)}>&times;</button>
+          <button
+            className="modal-close-btn"
+            onClick={() => setIsAddModalOpen(false)}
+          >
+            &times;
+          </button>
         </div>
         <form onSubmit={handleAddDeviceSubmit} className="modal-form">
           {/* (The form fields are identical to V3.0) */}
           <div className="form-group">
             <label>Device Name</label>
-            <input type="text" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} required />
+            <input
+              type="text"
+              value={deviceName}
+              onChange={(e) => setDeviceName(e.target.value)}
+              required
+            />
           </div>
           <div className="form-group">
             <label>Model</label>
-            <input type="text" value={deviceModel} onChange={(e) => setDeviceModel(e.target.value)} />
+            <input
+              type="text"
+              value={deviceModel}
+              onChange={(e) => setDeviceModel(e.target.value)}
+            />
           </div>
           <div className="form-group">
             <label>Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
               <option value="Smartphone">Smartphone</option>
               <option value="Laptop">Laptop</option>
               <option value="Gaming Console">Gaming Console</option>
@@ -306,9 +373,17 @@ const DashboardScreen = () => {
           </div>
           <div className="form-group">
             <label>Purchase Date</label>
-            <input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
+            <input
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+            />
           </div>
-          <button type="submit" className="auth-button green" style={{width: '100%', marginTop: '1rem'}}>
+          <button
+            type="submit"
+            className="auth-button green"
+            style={{ width: "100%", marginTop: "1rem" }}
+          >
             Add Device
           </button>
         </form>
@@ -323,24 +398,39 @@ const DashboardScreen = () => {
       >
         <div className="modal-header">
           <h2>Maintenance for {selectedDevice?.deviceName}</h2>
-          <button className="modal-close-btn" onClick={() => setIsMaintModalOpen(false)}>&times;</button>
+          <button
+            className="modal-close-btn"
+            onClick={() => setIsMaintModalOpen(false)}
+          >
+            &times;
+          </button>
         </div>
         <div className="task-list">
           {selectedDeviceTasks.length === 0 ? (
             <p>No tasks found for this device.</p>
           ) : (
             selectedDeviceTasks.map((task) => (
-              <div key={task._id} className="task-card" style={{backgroundColor: task.isComplete ? '#e6f7ec' : '#fdf6f6'}}>
+              <div
+                key={task._id}
+                className="task-card"
+                style={{
+                  backgroundColor: task.isComplete ? "#e6f7ec" : "#fdf6f6",
+                }}
+              >
                 <div className="task-info">
                   <strong>{task.taskName}</strong>
                   {task.isComplete ? (
-                    <span className="task-due" style={{color: 'green'}}>Completed: {formatDate(task.completedAt)}</span>
+                    <span className="task-due" style={{ color: "green" }}>
+                      Completed: {formatDate(task.completedAt)}
+                    </span>
                   ) : (
-                    <span className="task-due">Due: {formatDate(task.dueDate)}</span>
+                    <span className="task-due">
+                      Due: {formatDate(task.dueDate)}
+                    </span>
                   )}
                 </div>
                 {!task.isComplete && (
-                  <button 
+                  <button
                     className="task-complete-btn"
                     onClick={() => handleCompleteTask(task._id)}
                   >
@@ -351,16 +441,15 @@ const DashboardScreen = () => {
             ))
           )}
         </div>
-        
+
         {/* --- NEW: DELETE BUTTON INSIDE MODAL --- */}
-        <button 
+        <button
           className="delete-button-modal"
           onClick={() => handleDeleteDevice(selectedDevice._id)}
         >
           Delete This Device
         </button>
       </Modal>
-
     </div>
   );
 };

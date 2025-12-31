@@ -1,0 +1,86 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-logo {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #222;
+  text-decoration: none;
+  padding: 0 0.5rem 1.5rem 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.sidebar-nav {
+  flex-grow: 1; /* Pushes the footer down */
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-link:hover {
+  background-color: #f1f1f1;
+}
+
+/* This .active class is provided by NavLink */
+.sidebar-link.active {
+  background-color: #e6f1ff; /* Light blue */
+  color: #007bff; /* Your main blue */
+}
+
+/* --- Footer --- */
+.sidebar-footer {
+  margin-top: auto; /* Pushes to the bottom */
+}
+
+.sidebar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0.5rem;
+  border-top: 1px solid #eee;
+}
+
+.sidebar-username {
+  font-weight: 600;
+}
+
+.sidebar-logout {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #f44336;
+  background: #fdecea;
+  border: 1px solid #f44336;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.sidebar-logout:hover {
+  background-color: #fce2e0;
+}

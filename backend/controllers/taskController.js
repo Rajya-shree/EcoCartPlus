@@ -8,6 +8,7 @@ const Notification = require("../models/notificationModel");
  * @access  Private
  */
 const getUpcomingTasks = asyncHandler(async (req, res) => {
+  // 🟢 1. Only fetch tasks that are NOT complete
   const tasks = await DeviceTask.find({
     user: req.user._id,
     isComplete: false,
@@ -15,22 +16,19 @@ const getUpcomingTasks = asyncHandler(async (req, res) => {
     .sort({ dueDate: 1 })
     .populate("device", "deviceName");
 
-  // --- NEW NOTIFICATION LOGIC ---
   const today = new Date();
 
-  // We do this in parallel so it doesn't slow down the request
-  Promise.all(
+  // 🟢 2. Handle Notifications for overdue tasks
+  // Using Promise.all ensures we don't send the response until logic is checked
+  await Promise.all(
     tasks.map(async (task) => {
-      // Is the task overdue?
-      if (task.dueDate < today) {
+      if (new Date(task.dueDate) < today) {
         try {
-          // Check if a notification for this task *already exists*
           const notificationExists = await Notification.findOne({
             user: req.user._id,
             task: task._id,
           });
 
-          // If it doesn't exist, create one!
           if (!notificationExists) {
             await Notification.create({
               user: req.user._id,
@@ -39,20 +37,17 @@ const getUpcomingTasks = asyncHandler(async (req, res) => {
             });
           }
         } catch (err) {
-          // We console.log the error but don't stop the main function
-          // This prevents a crash if a duplicate notification tries to create
-          console.error("Error creating notification:", err.message);
+          console.error("Notification Error:", err.message);
         }
       }
     })
   );
-  // --- END OF NEW LOGIC ---
 
   res.status(200).json(tasks);
 });
 
 /**
- * @desc    Mark a task as complete and create the next one
+ * @desc    Mark a task as complete, create the next one, AND clean up notifications
  * @route   PUT /api/tasks/:id/complete
  * @access  Private
  */
@@ -64,20 +59,23 @@ const completeTask = asyncHandler(async (req, res) => {
     throw new Error("Task not found");
   }
 
-  // Check that the task belongs to the logged-in user
   if (task.user.toString() !== req.user._id.toString()) {
     res.status(401);
     throw new Error("User not authorized");
   }
 
-  // 1. Mark the current task as complete
+  // 1. Mark current task complete
   task.isComplete = true;
   task.completedAt = new Date();
   const updatedTask = await task.save();
 
-  // 2. Create the *next* recurring task
-  const newDueDate = new Date(); // Start from today
-  newDueDate.setMonth(newDueDate.getMonth() + task.frequencyMonths);
+  // 🟢 2. NEW: Delete the notification associated with this task
+  // This ensures the red dot updates immediately in the Header
+  await Notification.findOneAndDelete({ task: task._id });
+
+  // 3. Create the next recurring task
+  const newDueDate = new Date();
+  newDueDate.setMonth(newDueDate.getMonth() + (task.frequencyMonths || 6));
 
   await DeviceTask.create({
     device: task.device,
@@ -85,14 +83,12 @@ const completeTask = asyncHandler(async (req, res) => {
     taskName: task.taskName,
     dueDate: newDueDate,
     isComplete: false,
-    frequencyMonths: task.frequencyMonths,
+    frequencyMonths: task.frequencyMonths || 6,
     deviceCategory: task.deviceCategory,
   });
 
   res.status(200).json(updatedTask);
 });
-
-// ... (at the bottom, before module.exports)
 
 /**
  * @desc    Get all tasks for a single device
@@ -102,8 +98,8 @@ const completeTask = asyncHandler(async (req, res) => {
 const getTasksForDevice = asyncHandler(async (req, res) => {
   const tasks = await DeviceTask.find({
     user: req.user._id,
-    device: req.params.id, // Get tasks for this specific device
-  }).sort({ dueDate: 1 }); // Sort by due date
+    device: req.params.id,
+  }).sort({ dueDate: 1 });
 
   res.status(200).json(tasks);
 });

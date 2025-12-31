@@ -22,7 +22,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!username || !email || !password) {
     res.status(400);
     throw new Error("Please fill in all fields");
-  }
+  } 
 
   // 2. Check if user already exists
   const userExists = await User.findOne({ email });
