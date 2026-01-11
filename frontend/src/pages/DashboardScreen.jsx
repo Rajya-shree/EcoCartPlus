@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Modal from "react-modal";
 import "./Dashboard.css";
 
-// Helper function to calculate "Overdue" days
+// --- KEEPING YOUR ORIGINAL HELPER FUNCTIONS ---
 const getOverdueDays = (dueDate) => {
   const today = new Date();
   const due = new Date(dueDate);
@@ -14,7 +14,6 @@ const getOverdueDays = (dueDate) => {
   return diffDays > 0 ? diffDays : 0;
 };
 
-// Helper function to format dates
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString();
@@ -23,23 +22,21 @@ const formatDate = (dateString) => {
 Modal.setAppElement("#root");
 
 const DashboardScreen = () => {
+  // --- KEEPING ALL YOUR ORIGINAL STATE VARIABLES ---
   const { userInfo } = useAuth();
-
   const [devices, setDevices] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
-
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isMaintModalOpen, setIsMaintModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedDeviceTasks, setSelectedDeviceTasks] = useState([]);
-
   const [deviceName, setDeviceName] = useState("");
   const [deviceModel, setDeviceModel] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [category, setCategory] = useState("Smartphone");
-
   const [dismissedTasks, setDismissedTasks] = useState([]);
 
+  // --- KEEPING YOUR ORIGINAL LOGIC FUNCTIONS ---
   const fetchData = async () => {
     if (!userInfo) return;
     const config = {
@@ -69,7 +66,6 @@ const DashboardScreen = () => {
     try {
       const deviceData = { deviceName, deviceModel, purchaseDate, category };
       await axios.post("/api/devices", deviceData, config);
-
       toast.success("Device added & maintenance scheduled!");
       setDeviceName("");
       setDeviceModel("");
@@ -82,7 +78,6 @@ const DashboardScreen = () => {
     }
   };
 
-  // --- NEW: DELETE HANDLER ---
   const handleDeleteDevice = async (deviceId) => {
     if (
       !window.confirm(
@@ -90,38 +85,30 @@ const DashboardScreen = () => {
       )
     )
       return;
-
-    const config = {
-      headers: { Authorization: `Bearer ${userInfo.token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       await axios.delete(`/api/devices/${deviceId}`, config);
       toast.success("Device deleted");
-      setIsMaintModalOpen(false); // Close the modal
-      fetchData(); // Refresh all data
+      setIsMaintModalOpen(false);
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || err.message);
     }
   };
 
-  // --- NEW: ADD REPAIR HANDLER ---
   const handleAddRepair = async (deviceId) => {
-    const config = {
-      headers: { Authorization: `Bearer ${userInfo.token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       await axios.put(`/api/devices/${deviceId}/addrepair`, {}, config);
       toast.success("Repair count updated!");
-      fetchData(); // Refresh all data
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || err.message);
     }
   };
 
   const handleOpenMaintModal = async (device) => {
-    const config = {
-      headers: { Authorization: `Bearer ${userInfo.token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       const { data } = await axios.get(
         `/api/tasks/device/${device._id}`,
@@ -136,16 +123,11 @@ const DashboardScreen = () => {
   };
 
   const handleCompleteTask = async (taskId) => {
-    const config = {
-      headers: { Authorization: `Bearer ${userInfo.token}` },
-    };
+    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       await axios.put(`/api/tasks/${taskId}/complete`, {}, config);
       toast.success("Task completed!");
-
       await fetchData();
-
-      // Re-fetch data for the modal
       const { data } = await axios.get(
         `/api/tasks/device/${selectedDevice._id}`,
         config
@@ -156,20 +138,21 @@ const DashboardScreen = () => {
     }
   };
 
-  const handleComplete = (taskId) => {
-    setDismissedTasks([...dismissedTasks, taskId]);
-    toast.success("Task marked as complete!");
-  };
-
   const totalRepairs = devices.reduce((acc, dev) => acc + dev.repairsDone, 0);
+  // NEW LOGIC FOR FRIEND'S UI: Calculating average eco score locally
+  const avgEcoScore =
+    devices.length > 0
+      ? (
+          devices.reduce((acc, dev) => acc + (dev.ecoScore || 0), 0) /
+          devices.length
+        ).toFixed(1)
+      : 0;
 
-  if (!userInfo) {
-    return <div>Loading...</div>;
-  }
+  if (!userInfo) return <div>Loading...</div>;
 
+  // --- START OF THE FRIEND'S UI WRAPPER ---
   return (
     <div className="dashboard-container">
-      {/* --- HEADER --- */}
       <div className="dashboard-header">
         <div>
           <h2>Device Lifecycle Tracker</h2>
@@ -186,7 +169,6 @@ const DashboardScreen = () => {
         </button>
       </div>
 
-      {/* --- STATS CARDS --- */}
       <div className="stats-grid">
         <div className="stat-card">
           <h3>{devices.length}</h3>
@@ -201,14 +183,12 @@ const DashboardScreen = () => {
           <p>Pending Tasks</p>
         </div>
         <div className="stat-card">
-          <h3>...</h3>
+          <h3>{avgEcoScore}</h3>
           <p>Avg. Eco Score</p>
         </div>
       </div>
 
-      {/* --- MAIN 2-COLUMN LAYOUT --- */}
       <div className="dashboard-main-content">
-        {/* --- LEFT SIDE: YOUR DEVICES --- */}
         <div className="your-devices-section">
           <h3>Your Devices</h3>
           <div className="device-list">
@@ -242,7 +222,6 @@ const DashboardScreen = () => {
                       <div className="metric-item">
                         <h5>
                           {device.repairsDone}
-                          {/* --- NEW: ADD REPAIR BUTTON --- */}
                           <button
                             className="add-repair-btn"
                             onClick={() => handleAddRepair(device._id)}
@@ -281,7 +260,6 @@ const DashboardScreen = () => {
           </div>
         </div>
 
-        {/* --- RIGHT SIDE: REMINDERS --- */}
         <div className="reminders-section">
           <h3>Upcoming Tasks</h3>
           <p>Proactive maintenance to prevent repairs.</p>
@@ -318,12 +296,11 @@ const DashboardScreen = () => {
                 );
               })
             )}
-            
           </div>
         </div>
       </div>
 
-      {/* --- MODAL 1: ADD DEVICE --- */}
+      {/* --- MODALS (Your existing modal logic kept exactly same) --- */}
       <Modal
         isOpen={isAddModalOpen}
         onRequestClose={() => setIsAddModalOpen(false)}
@@ -340,7 +317,6 @@ const DashboardScreen = () => {
           </button>
         </div>
         <form onSubmit={handleAddDeviceSubmit} className="modal-form">
-          {/* (The form fields are identical to V3.0) */}
           <div className="form-group">
             <label>Device Name</label>
             <input
@@ -389,7 +365,6 @@ const DashboardScreen = () => {
         </form>
       </Modal>
 
-      {/* --- MODAL 2: MAINTENANCE TASKS --- */}
       <Modal
         isOpen={isMaintModalOpen}
         onRequestClose={() => setIsMaintModalOpen(false)}
@@ -407,7 +382,7 @@ const DashboardScreen = () => {
         </div>
         <div className="task-list">
           {selectedDeviceTasks.length === 0 ? (
-            <p>No tasks found for this device.</p>
+            <p>No tasks found.</p>
           ) : (
             selectedDeviceTasks.map((task) => (
               <div
@@ -441,8 +416,6 @@ const DashboardScreen = () => {
             ))
           )}
         </div>
-
-        {/* --- NEW: DELETE BUTTON INSIDE MODAL --- */}
         <button
           className="delete-button-modal"
           onClick={() => handleDeleteDevice(selectedDevice._id)}

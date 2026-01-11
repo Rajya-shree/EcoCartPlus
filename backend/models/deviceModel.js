@@ -32,6 +32,16 @@ const deviceSchema = mongoose.Schema(
       type: Number,
       default: 0, // Default to 0 if no match is found
     },
+    // Add these to your deviceSchema in backend/models/deviceModel.js
+    estimatedLifespanMonths: {
+      type: Number,
+      default: 60, // Default 5 years
+    },
+    status: {
+      type: String,
+      enum: ["Active", "Repaired", "Recycled"],
+      default: "Active",
+    },
   },
   {
     timestamps: true,

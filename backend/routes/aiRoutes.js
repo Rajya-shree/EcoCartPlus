@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { analyzeDescription } = require("../controllers/aiController");
+// Changed analyzeDescription to diagnoseDevice to match your controller
+const { diagnoseDevice } = require("../controllers/aiController");
 
-// POST /api/ai/analyze
-router.route("/analyze").post(analyzeDescription);
+// Updated the route path and function name to match your frontend calls
+router.post("/diagnose", diagnoseDevice);
 
 module.exports = router;

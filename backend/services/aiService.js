@@ -1,52 +1,41 @@
-// backend/services/aiService.js
-
 const { GoogleGenAI } = require("@google/genai");
 const dotenv = require("dotenv");
 dotenv.config();
 
-// Initialize the GoogleGenAI client (gets key from .env automatically)
-const ai = new GoogleGenAI({});
+// Initialize with your API key from .env
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-const systemPrompt = `
-You are the EcoNova Repair Mascot. You must help the user diagnose their device issues using this logic:
-
-1. REPEAT: Start by acknowledging the device and age (e.g. "I see your 2-year old laptop has power issues").
-2. TRIAGE: Ask exactly ONE safe follow-up question (e.g. "Is the charger indicator light on?").
-3. DIAGNOSE: If the user answers, use the provided iFixit [CONTEXT] to suggest 2 simple DIY steps.
-4. SAFETY GUARDRAIL: If the issue sounds like a battery swelling, smoke, or internal short-circuit, say: "This looks like an internal hardware failure. For your safety, please do not open the device. I am providing a list of nearby certified repair centers below."
-
-Always be calm and helpful. If iFixit data is not found, use your general knowledge but prioritize safety.
-`;
-
+/**
+ * Merged AI Logic to satisfy "EcoNova Repair Mascot" identity
+ * and "Safety Guardrails" from the project abstract.
+ */
 async function generateRepairDiagnosis(prompt, contextData) {
-  // 1. Master System Prompt - Simplified for this test, but includes the RAG structure
-  const systemPrompt = `
-        You are a friendly electronics repair bot named 'EcoNova AI Advisor'.
-        Acknowledge the user's problem clearly.
-        Your goal is to suggest a single, simple, safe, DIY solution based ONLY on the provided CONTEXTUAL DATA and common sense troubleshooting.
-        
-        **CONTEXTUAL DATA (iFixit Guides):**
-        ---
-        ${contextData}
-        ---
-        
-        **USER'S PROBLEM:**
-    `;
+  // Using gemini-1.5-flash for fast, efficient diagnostic responses
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const systemInstructions = `
+    You are the EcoNova Repair Mascot. You help users diagnose device issues using this logic:
+    
+    1. REPEAT: Acknowledge the device and problem clearly (e.g., "I'm sorry your 3-year-old laptop won't turn on").
+    2. TRIAGE: Ask exactly ONE safe follow-up question to narrow down the issue.
+    3. DIAGNOSE: Use the provided iFixit [CONTEXT] to suggest 2 simple, safe DIY steps.
+    4. SAFETY GUARDRAIL: If you detect signs of battery swelling, smoke, fire risk, or internal short-circuits, 
+       immediately say: "This looks like an internal hardware failure. For your safety, do not open the device. 
+       I am providing a list of nearby certified repair centers below."
+    
+    **CONTEXTUAL DATA (iFixit Guides):**
+    ---
+    ${contextData}
+    ---
+  `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Fast and effective model
-      contents: systemPrompt + prompt,
-      config: {
-        temperature: 0.7,
-      },
-    });
-
-    return response.text;
+    const result = await model.generateContent(systemInstructions + "\nUser's Problem: " + prompt);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
     console.error("Gemini API Error:", error.message);
-    // CRUCIAL: If the AI fails, return a graceful error message.
-    return "I apologize, my diagnostic AI is currently offline. Please ensure your GEMINI_API_KEY is valid and try restarting the server.";
+    return "I'm having trouble connecting to my repair database. For your safety, please check with a local technician if the issue persists.";
   }
 }
 

@@ -1,71 +1,67 @@
-//require("dotenv").config();
-// Only run dotenv in 'development' (your local machine)
+// backend/index.js
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const session = require("express-session");
+const MongoStore = require("connect-mongo").default;
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
-// --- 1. Get your secret variables ---
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// --- 2. Create your Express app ---
 const app = express();
-app.use(express.json()); // Allows your app to accept JSON data
-app.use(cors()); // Allows your frontend to make requests
 
-// --- 3. Define your routes ---
-// Test route
+// --- 1. Session Management (Professor's Requirement) ---
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "econova_secret_key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: MONGO_URI }),
+    cookie: {
+      httpOnly: true, // Security: prevents XSS attacks
+      secure: process.env.NODE_ENV === "production", // Only use HTTPS in production
+      maxAge: 1000 * 60 * 60 * 24, // 1 day session
+    },
+  })
+);
+
+app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true, // Required for sessions to work over CORS
+  })
+);
+
+// --- 2. Routes ---
 app.get("/", (req, res) => {
-  res.send("Hello! Your AI Repair Assistant backend is running.");
+  res.send("EcoNova+ Backend is running securely.");
 });
 
-// User routes
 app.use("/api/users", require("./routes/userRoutes"));
-
-// Device routes
 app.use("/api/devices", require("./routes/deviceRoutes"));
-
-// Repair guides routes (Public)
 app.use("/api/repair-guides", require("./routes/repairRoutes"));
-
-// Eco-Product routes
 app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
-4;
-
 app.use("/api/tasks", require("./routes/taskRoutes"));
-
-// Add the new notification routes
 app.use("/api/notifications", require("./routes/notificationRoutes"));
-// Add the new repair shop routes
 app.use("/api/repair-shops", require("./routes/repairShopRoutes"));
-// Add the new YouTube routes
-app.use('/api/youtube', require('./routes/youtubeRoutes'));
+app.use("/api/youtube", require("./routes/youtubeRoutes"));
 
-// 🟢 NEW: AI Repair Advisor routes 🟢
-// This links the new AI diagnosis logic to the /api/ai endpoint
-// app.use("/api/repair-centers", require("./routes/repairCenterRoutes"));
-// app.use("/api/ai", require("./routes/aiRoutes.js"));
+// 🟢 AI Route - Fixed (Uncommented and verified)
+app.use("/api/ai", require("./routes/aiRoutes"));
 
-// --- 4. Add your Error Middleware ---
-// (These must be at the end, after all your routes)
+// --- 3. Global Error Handling (Professor's Requirement) ---
 app.use(notFound);
 app.use(errorHandler);
 
-// --- 5. Connect to DB and Start Server ---
 mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("Successfully connected to MongoDB!");
-
-    // Only start the server if the database connection is successful
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
-  .catch((err) => {
-    console.error("Database connection failed:", err.message);
-  });
+  .catch((err) => console.error("Database connection failed:", err.message));

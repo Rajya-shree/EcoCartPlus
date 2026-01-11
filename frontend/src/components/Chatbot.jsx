@@ -128,59 +128,33 @@ const Chatbot = () => {
     }
   };
 
-  // --- This is the API "Tool" Function ---
-  const fetchAllResults = async (device, problem, shopsOnly = false) => {
+  // Inside Chatbot.jsx, replace the fetchAllResults function:
+
+  const fetchAllResults = async (device, problem) => {
     setIsLoading(true);
-    setChatStep(CHAT_STEPS.STEP_4_SHOW_RESULTS); // We are now showing results
-
-    let botMessage = {
-      from: "bot",
-      text: "Here's what I found for you:",
-      guides: [],
-      videos: [],
-      shops: [],
-    };
-
     try {
-      // Create all our API promises
-      // We use the LIVE backend URL
-      const apiPrefix = "https://ecocartplus-backend.onrender.com";
+      const apiPrefix = "http://localhost:5000"; // Your backend URL
 
-      const shopPromise = axios.get(`${apiPrefix}/api/repair-shops`);
+      // 1. Call the new AI Diagnosis route we created
+      const { data } = await axios.post(`${apiPrefix}/api/ai/diagnose`, {
+        deviceName: device,
+        problemDescription: problem,
+      });
 
-      if (!shopsOnly) {
-        const guidePromise = axios.post(`${apiPrefix}/api/repair-guides`, {
-          query: `${device} ${problem}`,
-        });
-        const youtubePromise = axios.post(`${apiPrefix}/api/youtube/search`, {
-          query: `${device} ${problem}`,
-        });
-
-        const [guideRes, youtubeRes, shopRes] = await Promise.all([
-          guidePromise,
-          youtubeRes,
-          shopPromise,
-        ]);
-
-        botMessage.guides = guideRes.data;
-        botMessage.videos = youtubeRes.data;
-        botMessage.shops = shopRes.data;
-      } else {
-        const shopRes = await shopPromise;
-        botMessage.shops = shopRes.data;
-      }
+      const botMessage = {
+        from: "bot",
+        text: data.message, // This is the personalized diagnosis from Gemini
+        guides: data.guides || [],
+        shops: data.fallbacks?.shops || [],
+        videos: data.fallbacks?.videos || [],
+      };
 
       setMessages((prev) => [...prev, botMessage]);
+      setChatStep(CHAT_STEPS.STEP_4_SHOW_RESULTS);
     } catch (err) {
       console.error(err);
-      toast.error("Sorry, I had trouble fetching data.");
-      const errorResponse = {
-        from: "bot",
-        text: "Sorry, I had trouble fetching results. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorResponse]);
+      toast.error("AI Assistant is offline. Please check your API key.");
     }
-
     setIsLoading(false);
   };
 

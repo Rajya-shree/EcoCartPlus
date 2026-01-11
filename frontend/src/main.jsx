@@ -13,6 +13,7 @@ import HomeScreen from "./pages/HomeScreen";
 import DashboardScreen from "./pages/DashboardScreen";
 import LoginScreen from "./pages/LoginScreen";
 import RegisterScreen from "./pages/RegisterScreen";
+import EcoScreen from "./pages/EcoScreen";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
       <Route index={true} element={<HomeScreen />} />
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/register" element={<RegisterScreen />} />
+      <Route path="/eco-shopping" element={<EcoScreen />} />
 
       {/* Protect the dashboard */}
       <Route path="" element={<PrivateRoute />}>

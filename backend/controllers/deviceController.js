@@ -118,14 +118,12 @@ const incrementRepairCount = asyncHandler(async (req, res) => {
     throw new Error("Device not found");
   }
 
-  if (device.user.toString() !== req.user.id) {
-    res.status(401);
-    throw new Error("User not authorized");
-  }
-
   device.repairsDone = (device.repairsDone || 0) + 1;
-  const updatedDevice = await device.save();
+  // Lifecycle logic: Extending lifespan by 1 year per repair
+  device.estimatedLifespanMonths += 12;
+  device.status = "Repaired";
 
+  const updatedDevice = await device.save();
   res.status(200).json(updatedDevice);
 });
 

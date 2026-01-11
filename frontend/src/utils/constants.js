@@ -6,3 +6,4 @@ export const USERS_URL = `${BASE_URL}/users`;
 export const DEVICES_URL = `${BASE_URL}/devices`;
 export const AI_URL = `${BASE_URL}/ai`;
 export const ECO_URL = `${BASE_URL}/eco-products`;
+export const TASKS_URL = `${BASE_URL}/tasks`;

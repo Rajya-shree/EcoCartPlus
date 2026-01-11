@@ -3,9 +3,8 @@ const mongoose = require("mongoose");
 const repairShopSchema = mongoose.Schema(
   {
     name: { type: String, required: true },
-    // e.g., "2.3 miles away"
-    distance: { type: String, required: true },
-    // e.g., 4.8
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
     rating: { type: Number, required: true },
   },
   { timestamps: true }

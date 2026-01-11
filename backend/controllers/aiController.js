@@ -1,5 +1,6 @@
 const { generateRepairDiagnosis } = require("../services/aiService");
 const { fetchRepairGuides } = require("../services/repairDataService");
+const asyncHandler = require("express-async-handler");
 
 const diagnoseDevice = async (req, res) => {
   const { deviceName, problemDescription } = req.body;
@@ -45,4 +46,6 @@ const diagnoseDevice = async (req, res) => {
   }
 };
 
-module.exports = { diagnoseDevice };
+module.exports = {
+  diagnoseDevice,
+};
