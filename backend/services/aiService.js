@@ -58,3 +58,52 @@ async function generateRepairDiagnosis(prompt, contextData) {
 }
 
 module.exports = { generateRepairDiagnosis };
+
+// backend/services/aiService.js
+
+// ... keep existing GoogleGenAI initialization
+
+/**
+ * @desc Evaluates a product's sustainability using Gen AI
+ */
+async function evaluateProductSustainability(productName) {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = `
+        Act as an environmental sustainability expert. 
+        Analyze the following product: "${productName}"
+        
+        Provide a detailed sustainability report in STRICT JSON format:
+        {
+            "name": "Full product name",
+            "materialScore": (score 1-10),
+            "repairabilityScore": (score 1-10),
+            "companyScore": (score 1-10),
+            "ecoReasons": ["Reason 1", "Reason 2"],
+            "keyFeatures": ["Feature 1", "Feature 2"],
+            "greenerAlternative": "Name of a more sustainable version",
+            "priceRange": "Estimated market price in INR"
+        }
+        
+        Base the scores on global standards for e-waste and sustainability.
+    `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // Ensure we only parse the JSON block
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    return jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+  } catch (error) {
+    console.error("Gemini Sustainability Error:", error);
+    return null;
+  }
+}
+
+// Update exports to include the new function
+module.exports = {
+  generateRepairDiagnosis: require("./aiService").generateRepairDiagnosis, // keep existing
+  evaluateProductSustainability,
+};

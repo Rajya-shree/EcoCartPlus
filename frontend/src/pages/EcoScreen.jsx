@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import './EcoScreen.css'; // We will create this
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "./EcoScreen.css"; // We will create this
 
 const EcoScreen = () => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Function to fetch products
-  const fetchProducts = async (searchQuery = '') => {
+  const fetchProducts = async (searchQuery = "") => {
     setIsLoading(true);
     try {
       // Call your new API endpoint
-      const { data } = await axios.post('/api/eco-products/search', { 
-        query: searchQuery 
+      const { data } = await axios.post("/api/eco-products/search", {
+        query: searchQuery,
       });
       setProducts(data);
     } catch (err) {
       console.error(err);
-      toast.error('Could not fetch products');
+      toast.error("Could not fetch products");
     }
     setIsLoading(false);
   };
@@ -37,9 +37,9 @@ const EcoScreen = () => {
 
   // Helper to get score color
   const getScoreColor = (score) => {
-    if (score >= 90) return 'score-blue'; // 90+
-    if (score >= 80) return 'score-yellow'; // 80-89
-    return 'score-red'; // Below 80
+    if (score >= 90) return "score-blue"; // 90+
+    if (score >= 80) return "score-yellow"; // 80-89
+    return "score-red"; // Below 80
   };
 
   return (
@@ -55,7 +55,7 @@ const EcoScreen = () => {
             placeholder="Search for sustainable products..."
           />
           <button type="submit" disabled={isLoading}>
-            {isLoading ? '...' : 'Search'}
+            {isLoading ? "..." : "Search"}
           </button>
         </form>
       </div>
@@ -66,12 +66,20 @@ const EcoScreen = () => {
         ) : (
           products.map((product) => (
             <div className="product-card" key={product._id}>
-              <div className={`score-badge ${getScoreColor(product.finalEcoScore)}`}>
+              <div
+                className={`score-badge ${getScoreColor(
+                  product.finalEcoScore
+                )}`}
+              >
                 {product.finalEcoScore}
               </div>
-              <img src={product.imageUrl || 'https://via.placeholder.com/150'} alt={product.name} className="product-image" />
+              <img
+                src={product.imageUrl || "https://via.placeholder.com/150"}
+                alt={product.name}
+                className="product-image"
+              />
               <h3>{product.name}</h3>
-              
+
               <div className="price-box">
                 <span className="price">{product.price}</span>
               </div>
@@ -79,10 +87,12 @@ const EcoScreen = () => {
               <div className="key-features">
                 <strong>Key Features:</strong>
                 {product.features.map((feature, i) => (
-                  <span key={i} className="feature-tag">{feature}</span>
+                  <span key={i} className="feature-tag">
+                    {feature}
+                  </span>
                 ))}
               </div>
-              
+
               <div className="eco-reason">
                 <strong>Sustainability:</strong>
                 <ul>
@@ -92,7 +102,12 @@ const EcoScreen = () => {
                 </ul>
               </div>
 
-              <a href={product.buyLink} className="buy-button" target="_blank" rel="noopener noreferrer">
+              <a
+                href={product.buyLink}
+                className="buy-button"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 View Product
               </a>
             </div>
