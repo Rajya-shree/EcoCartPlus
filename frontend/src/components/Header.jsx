@@ -1,3 +1,4 @@
+// components/Header.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +19,7 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SmartToyIcon from "@mui/icons-material/SmartToy"; // 🟢 Added for Repair AI icon
 
 const Header = () => {
   const { userInfo, logout } = useAuth();
@@ -92,31 +94,39 @@ const Header = () => {
             </Link>
           </Box>
 
-          {/* Navigation Links */}
+          {/* 🟢 NAVIGATION LINKS - UPDATED FOR NEW STRUCTURE */}
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
             <Button
               component={Link}
               to="/"
               color="inherit"
-              sx={{ fontWeight: 500 }}
+              sx={{ fontWeight: 600 }}
             >
-              Home
+              Dashboard
             </Button>
             <Button
               component={Link}
-              to="/eco-shopping"
+              to="/green-shop"
               color="inherit"
               sx={{ fontWeight: 500 }}
             >
-              Green Shopping
+              Green Shop
             </Button>
             <Button
               component={Link}
-              to="/dashboard"
+              to="/repair-ai" // 🟢 NEW SECTION
               color="inherit"
               sx={{ fontWeight: 500 }}
             >
-              Lifecycle Tracker
+              Repair AI
+            </Button>
+            <Button
+              component={Link}
+              to="/lifecycle" // 🟢 RENAMED PATH
+              color="inherit"
+              sx={{ fontWeight: 500 }}
+            >
+              Lifecycle
             </Button>
           </Box>
 
@@ -124,9 +134,8 @@ const Header = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {userInfo ? (
               <>
-                {/* Dynamic Notification Badge */}
                 <IconButton
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/lifecycle")}
                   color="inherit"
                 >
                   <Badge badgeContent={notificationCount} color="error">
@@ -161,7 +170,7 @@ const Header = () => {
                   variant="text"
                   color="inherit"
                 >
-                  Unlock
+                  Login
                 </Button>
                 <Button
                   component={Link}

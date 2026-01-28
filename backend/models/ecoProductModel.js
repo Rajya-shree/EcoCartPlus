@@ -23,4 +23,4 @@ const ecoProductSchema = mongoose.Schema(
 
 ecoProductSchema.index({ name: "text" });
 
-module.exports = mongoose.model("EcoProduct", ecoProductSchema);
+module.exports = mongoose.model("EcoProduct", ecoProductSchema, "ecoproducts");

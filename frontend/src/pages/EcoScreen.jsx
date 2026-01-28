@@ -1,121 +1,158 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import "./EcoScreen.css"; // We will create this
+import "./EcoScreen.css";
+import {
+  Search,
+  ShieldCheck,
+  Hammer,
+  Building2,
+  Info,
+  ArrowRight,
+} from "lucide-react";
 
 const EcoScreen = () => {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Function to fetch products
   const fetchProducts = async (searchQuery = "") => {
     setIsLoading(true);
     try {
-      // Call your new API endpoint
-      const { data } = await axios.post("/api/eco-products/search", {
-        query: searchQuery,
-      });
-      setProducts(data);
+      const { data } = await axios.post(
+        "http://localhost:5001/api/eco-products/search",
+        { query: searchQuery },
+      );
+      // Ensure data is always an array
+      setProducts(Array.isArray(data) ? data : [data]);
     } catch (err) {
-      console.error(err);
-      toast.error("Could not fetch products");
+      console.error("Fetch Error:", err);
+      toast.error("Could not fetch results");
     }
     setIsLoading(false);
   };
 
-  // Fetch all products when the page first loads
   useEffect(() => {
-    fetchProducts();
+    fetchProducts("Sustainable Electronics");
   }, []);
 
-  // Handle the search form submit
   const submitHandler = (e) => {
     e.preventDefault();
     fetchProducts(query);
   };
 
-  // Helper to get score color
-  const getScoreColor = (score) => {
-    if (score >= 90) return "score-blue"; // 90+
-    if (score >= 80) return "score-yellow"; // 80-89
-    return "score-red"; // Below 80
-  };
+  // We take the first product to display in the detailed card
+  const result = products[0];
 
   return (
-    <div className="eco-container">
-      <div className="eco-header">
-        <h2>Green Shopping Assistant</h2>
-        <p>Discover products with environmental impact scores.</p>
-        <form onSubmit={submitHandler} className="eco-search-form">
+    <div
+      className="eco-advisor-container"
+      style={{ backgroundColor: "rgb(241, 245, 249)" }}
+    >
+      <div className="hero-section text-center">
+        <h1>Green Shopping Intelligence</h1>
+        <p>
+          Use our AI-powered advisor to get a real-time sustainability report.
+        </p>
+
+        <form onSubmit={submitHandler} className="search-bar-container">
           <input
             type="text"
-            value={query}
+            placeholder="e.g., iPhone 15, Sony WH-1000XM5..."
+            value={query} // 🟢 Fixed: matched useState name
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for sustainable products..."
           />
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "..." : "Search"}
+          <button type="submit" className="analyze-btn" disabled={isLoading}>
+            {isLoading ? "..." : "Analyze"}
           </button>
         </form>
       </div>
 
-      <div className="product-grid">
-        {isLoading ? (
-          <p>Loading products...</p>
-        ) : (
-          products.map((product) => (
-            <div className="product-card" key={product._id}>
-              <div
-                className={`score-badge ${getScoreColor(
-                  product.finalEcoScore
-                )}`}
-              >
-                {product.finalEcoScore}
-              </div>
-              <img
-                src={product.imageUrl || "https://via.placeholder.com/150"}
-                alt={product.name}
-                className="product-image"
-              />
-              <h3>{product.name}</h3>
-
-              <div className="price-box">
-                <span className="price">{product.price}</span>
-              </div>
-
-              <div className="key-features">
-                <strong>Key Features:</strong>
-                {product.features.map((feature, i) => (
-                  <span key={i} className="feature-tag">
-                    {feature}
-                  </span>
-                ))}
-              </div>
-
-              <div className="eco-reason">
-                <strong>Sustainability:</strong>
-                <ul>
-                  {product.ecoReasons.map((reason, i) => (
-                    <li key={i}>{reason}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <a
-                href={product.buyLink}
-                className="buy-button"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Product
-              </a>
+      {result && (
+        <div className="analysis-card">
+          <div className="card-header">
+            <div className="product-info">
+              <span className="brand-tag">ELECTRONICS</span>
+              <h2>{result.name}</h2>
+              <p className="description">
+                Sustainability analysis for {result.name}
+              </p>
             </div>
-          ))
-        )}
-      </div>
+            <div className="score-circle">
+              <span className="score-num">{result.finalEcoScore}</span>
+              <span className="score-label">ECOSCORE</span>
+            </div>
+          </div>
+
+          <div className="metrics-grid">
+            <MetricBar
+              icon={<ShieldCheck size={20} />}
+              label="Material Source"
+              score={result.materialScore}
+              color="#2e7d32"
+            />
+            <MetricBar
+              icon={<Hammer size={20} />}
+              label="Repairability"
+              score={result.repairabilityScore}
+              color="#ed6c02"
+            />
+            <MetricBar
+              icon={<Building2 size={20} />}
+              label="Corporate Ethics"
+              score={result.companyScore}
+              color="#0288d1"
+            />
+          </div>
+
+          <div className="pros-cons-section">
+            <div className="pros">
+              <h4>✓ Key Sustainability Pros</h4>
+              <ul>
+                {(result.ecoReasons || []).map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="cons">
+              <h4>! Room for Improvement</h4>
+              <ul>
+                {(result.features || []).map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {result.greenerAlternative && (
+            <div className="alternatives">
+              <h4>
+                <Info size={16} /> Better Alternatives
+              </h4>
+              <button className="alt-tag">
+                {result.greenerAlternative} <ArrowRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
+// Sub-component for the progress bars
+const MetricBar = ({ icon, label, score, color }) => (
+  <div className="metric-item">
+    <div className="metric-label">
+      {icon} <span>{label}</span>
+    </div>
+    <div className="progress-bg">
+      <div
+        className="progress-fill"
+        style={{ width: `${score * 10}%`, backgroundColor: color }}
+      ></div>
+    </div>
+  </div>
+);
 
 export default EcoScreen;
