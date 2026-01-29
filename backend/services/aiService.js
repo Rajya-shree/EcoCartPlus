@@ -12,8 +12,8 @@ async function generateRepairDiagnosis(prompt, contextData) {
       messages: [
         {
           role: "system",
-          content: `You are the EcoNova Repair Mascot. Diagnose issues safely based on this context: ${contextData}. 
-                    Acknowledge the problem, ask ONE safety question, and suggest 2 DIY steps. 
+          content: `You are the EcoNova Repair Mascot. Diagnose issues safely based on this context: ${contextData}.
+                    Acknowledge the problem, ask ONE safety question, and suggest 2 DIY steps.
                     If smoke/fire risk exists, warn the user immediately.`,
         },
         {
@@ -34,8 +34,8 @@ async function generateRepairDiagnosis(prompt, contextData) {
 
 async function evaluateProductSustainability(productName) {
   try {
-    const prompt = `Analyze product: "${productName}". Return STRICT JSON format ONLY. 
-    No markdown backticks, no preamble. 
+    const prompt = `Analyze product: "${productName}". Return STRICT JSON format ONLY.
+    No markdown backticks, no preamble.
     {
       "name": "Full product name",
       "price": "Estimated price in INR",

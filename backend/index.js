@@ -1,4 +1,7 @@
 // backend/index.js
+
+//const repairAssistantRoutes = require("./routes/repairAssistantRoutes");
+
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
@@ -26,7 +29,7 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Only use HTTPS in production
       maxAge: 1000 * 60 * 60 * 24, // 1 day session
     },
-  })
+  }),
 );
 
 app.use(express.json());
@@ -34,7 +37,7 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true, // Required for sessions to work over CORS
-  })
+  }),
 );
 
 // --- 2. Routes ---
@@ -53,6 +56,8 @@ app.use("/api/youtube", require("./routes/youtubeRoutes"));
 
 // 🟢 AI Route - Fixed (Uncommented and verified)
 app.use("/api/ai", require("./routes/aiRoutes"));
+// app.use("/api/repair-assistant", repairAssistantRoutes);
+app.use("/api/repair-assistant", require("./routes/repairAssistantRoutes"));
 
 // --- 3. Global Error Handling (Professor's Requirement) ---
 app.use(notFound);
