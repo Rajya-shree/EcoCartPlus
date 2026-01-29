@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,11 +8,11 @@ export default defineConfig({
   server: {
     proxy: {
       // This proxies any request starting with /api
-      '/api': {
-        target: 'https://ecocartplus-backend.onrender.com', // Your backend server
+      "/api": {
+        target: "http://localhost:5000", // Your backend server
         changeOrigin: true,
-        secure: true, 
+        secure: true,
       },
     },
   },
-})
+});

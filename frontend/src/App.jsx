@@ -10,7 +10,7 @@ function App() {
 
   // 🟢 FETCH DATA FROM DATABASE
   const fetchData = async () => {
-    if (!userInfo) return;
+    if (!userInfo || !userInfo.token) return;
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       const { data } = await axios.get("/api/devices", config);
@@ -28,7 +28,7 @@ function App() {
     <div className="App" style={{ backgroundColor: "rgb(241, 245, 249)" }}>
       <Header /> {/* 2. Add Header at the top */}
       <main className="main-content">
-        <Outlet context={{ devices, fetchData }} />{" "}
+        <Outlet context={{ devices, userInfo, fetchData }} />{" "}
         {/* 3. Outlet renders the current page */}
       </main>
     </div>

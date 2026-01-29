@@ -14,16 +14,18 @@ import DashboardScreen from "./pages/DashboardScreen"; // This is "Lifecycle"
 import LoginScreen from "./pages/LoginScreen";
 import RegisterScreen from "./pages/RegisterScreen";
 import EcoScreen from "./pages/EcoScreen"; // This is "Green Shop"
-import RepairAI from "./pages/RepairAI"; // 🟢 NEW: Dedicated Chatbot page
+//import RepairAI from "./pages/RepairAI"; // 🟢 NEW: Dedicated Chatbot page
+import RepairAssistant from "./pages/RepairAssistant.jsx"; // 🟢 NEW: Dedicated Repair AI page
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route index={true} element={<HomeScreen />} />
+      <Route path="/dashboard" element={<HomeScreen />} />
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/register" element={<RegisterScreen />} />
       <Route path="/green-shop" element={<EcoScreen />} />
-      <Route path="/repair-ai" element={<RepairAI />} /> 
+      <Route path="/repair-ai" element={<RepairAssistant />} />
 
       {/* Protect the dashboard */}
       <Route path="" element={<PrivateRoute />}>
