@@ -16,7 +16,11 @@ function App() {
       const { data } = await axios.get("/api/devices", config);
       setDevices(data);
     } catch (err) {
-      console.error("Error fetching data in App.jsx", err);
+      // console.error("Error fetching data in App.jsx", err);
+      console.error(
+        "Error fetching data:",
+        err.response?.data?.message || err.message,
+      );
     }
   };
 

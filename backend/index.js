@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/devices", require("./routes/deviceRoutes"));
 app.use("/api/repair-guides", require("./routes/repairRoutes"));
-app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
+app.use("/api/search", require("./routes/ecoProductRoutes"));
 app.use("/api/tasks", require("./routes/taskRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/repair-shops", require("./routes/repairShopRoutes"));

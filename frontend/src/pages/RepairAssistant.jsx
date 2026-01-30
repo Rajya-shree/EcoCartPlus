@@ -395,6 +395,11 @@ const RepairAssistant = () => {
     //   return;
     // }
 
+    const token = localStorage.getItem("userInfo") 
+    ? JSON.parse(localStorage.getItem("userInfo")).token 
+    : null;
+    
+
     const userMessage = input;
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
@@ -411,6 +416,7 @@ const RepairAssistant = () => {
         headers: {
           "Content-Type": "application/json",
           // Authorization: `Bearer ${token}`, // ← use the variable
+          ...(token && { Authorization: `Bearer ${token}` }), 
         },
         body: JSON.stringify({ message: userMessage, history, location }),
       });
