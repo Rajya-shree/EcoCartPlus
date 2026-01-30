@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { ECO_URL } from "../utils/constants";
 import { toast } from "react-toastify";
 import "./EcoScreen.css";
 import {
@@ -19,10 +20,11 @@ const EcoScreen = () => {
   const fetchProducts = async (searchQuery = "") => {
     setIsLoading(true);
     try {
-      const { data } = await axios.post(
-        "http://localhost:5001/api/eco-products/search",
-        { query: searchQuery },
-      );
+      // const { data } = await axios.post(
+      //   "http://localhost:5000/api/eco-products/analyze",
+      //   { query: searchQuery },
+      // );
+      const { data } = await axios.post(`${ECO_URL}/search`, { query });
       // Ensure data is always an array
       setProducts(Array.isArray(data) ? data : [data]);
     } catch (err) {

@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/devices", require("./routes/deviceRoutes"));
 app.use("/api/repair-guides", require("./routes/repairRoutes"));
-app.use("/api/search", require("./routes/ecoProductRoutes"));
+app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
 app.use("/api/tasks", require("./routes/taskRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/repair-shops", require("./routes/repairShopRoutes"));
@@ -58,6 +58,14 @@ app.use("/api/youtube", require("./routes/youtubeRoutes"));
 app.use("/api/ai", require("./routes/aiRoutes"));
 // app.use("/api/repair-assistant", repairAssistantRoutes);
 app.use("/api/repair-assistant", require("./routes/repairAssistantRoutes"));
+
+
+//Delete this line if you don't need it
+app.use((req, res, next) => {
+  console.log("Incoming:", req.method, req.originalUrl);
+  next();
+});
+
 
 // --- 3. Global Error Handling (Professor's Requirement) ---
 app.use(notFound);

@@ -10,7 +10,7 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import HomeScreen from "./pages/HomeScreen"; // This is now our "Dashboard" Hub
-import DashboardScreen from "./pages/DashboardScreen"; // This is "Lifecycle"
+import LifeCycleTracker from "./pages/LifeCycleTracker"; // This is "Lifecycle"
 import LoginScreen from "./pages/LoginScreen";
 import RegisterScreen from "./pages/RegisterScreen";
 import EcoScreen from "./pages/EcoScreen"; // This is "Green Shop"
@@ -29,7 +29,7 @@ const router = createBrowserRouter(
 
       {/* Protect the dashboard */}
       <Route path="" element={<PrivateRoute />}>
-        <Route path="/lifecycle" element={<DashboardScreen />} />
+        <Route path="/lifecycle" element={<LifeCycleTracker />} />
       </Route>
     </Route>,
   ),

@@ -31,10 +31,15 @@ const {
 const diagnoseDevice = asyncHandler(async (req, res) => {
   const { deviceName, problemDescription } = req.body;
 
+  if (!deviceName || !problemDescription) {
+    res.status(400);
+    throw new Error("Missing device name or problem description");
+  }
+
   // Use the correct function name you defined in aiService.js
   const diagnosis = await generateRepairDiagnosis(
-    deviceName,
     problemDescription,
+    "Generic electronic repair context"
   );
 
   res.status(200).json({

@@ -2,8 +2,10 @@
 // If we are in production, it uses the environment variable you set in Render/Vercel
 //export const BASE_URL = import.meta.env.VITE_BACKEND_URL || "/api";
 // frontend/src/utils/constants.js
-export const BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+// export const BASE_URL =
+//   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+  // Ensure this points to port 5000 to match your index.js
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
 
 export const USERS_URL = `${BASE_URL}/users`;
 export const DEVICES_URL = `${BASE_URL}/devices`;
