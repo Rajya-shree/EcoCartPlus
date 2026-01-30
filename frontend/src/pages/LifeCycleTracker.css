@@ -865,7 +865,7 @@
 
 .form-group input:focus {
   border-color: #10b981;
-  ring: 2px solid #10b981;
+  box-shadow: 0 0 0 2px #10b981;
 }
 
 /* Improvement 3: View All Button */
@@ -1463,4 +1463,3 @@
     transform: translateY(0);
   }
 }
-
