@@ -17,20 +17,25 @@ const RegisterScreen = () => {
   const submitHandler = async (e) => {
     e.preventDefault(); // Prevents the page from reloading
 
+    console.log("Form submit triggered");
+
     // Optional: Add password validation
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
+    console.log("Sending registration with:", { username, email, password });
 
     try {
       // This is the API call
       // The proxy in vite.config.js will redirect this to http://localhost:5001/api/users/register
+      console.log("Starting axios.post...");
       const { data } = await axios.post("/api/users/register", {
         username,
         email,
         password,
       });
+      console.log("Registration success - received:", data);
 
       // If successful, show a success message
       toast.success("Registration successful! Please log in.");
@@ -42,6 +47,7 @@ const RegisterScreen = () => {
     } catch (err) {
       // If the backend sends an error (like "User already exists"),
       // it will be in err.response.data.message
+      console.error("Registration failed:", err);
       toast.error(err.response?.data?.message || err.message);
     }
   };

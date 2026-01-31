@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 // Helper function to generate a token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d", // Token will be valid for 30 days
+    expiresIn: "365d", // Token will be valid for 30 days
   });
 };
 
@@ -17,12 +17,13 @@ const generateToken = (id) => {
  */
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
+  console.log("Register attempt:", { username, email });
 
   // 1. Check if all fields are filled
   if (!username || !email || !password) {
     res.status(400);
     throw new Error("Please fill in all fields");
-  } 
+  }
 
   // 2. Check if user already exists
   const userExists = await User.findOne({ email });
@@ -41,6 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password: hashedPassword,
   });
+  console.log("User created:", user._id, user.email);
 
   // 5. If user was created, send back user data (and a token)
   if (user) {
