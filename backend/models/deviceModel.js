@@ -45,7 +45,22 @@ const deviceSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
+
+// Add this to deviceModel.js before module.exports
+deviceSchema.virtual("calculatedEcoScore").get(function () {
+  const base = 50;
+  const repairs = (this.repairsDone || 0) * 10;
+  // If the device is older than 2 years, subtract points
+  const ageInYears =
+    (new Date() - this.purchaseDate) / (1000 * 60 * 60 * 24 * 365);
+  const agePenalty = ageInYears > 2 ? 20 : 0;
+
+  return Math.min(Math.max(base + repairs - agePenalty, 0), 100);
+});
+
+// Ensure virtuals are included in JSON
+deviceSchema.set("toJSON", { virtuals: true });
 
 module.exports = mongoose.model("Device", deviceSchema);

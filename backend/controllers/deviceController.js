@@ -19,6 +19,30 @@ const getMyDevices = asyncHandler(async (req, res) => {
  * @route   POST /api/devices
  * @access  Private
  */
+
+// Add this helper function at the top
+const calculateDynamicEcoScore = (device) => {
+  let score = 60; // Start with a base of 60
+
+  // Reward repairs
+  score += (device.repairsDone || 0) * 10;
+
+  // Reward maintenance (calculated by tasks)
+  if (device.nextCheckDate) {
+    const today = new Date();
+    const nextCheck = new Date(device.nextCheckDate);
+    // If they are ahead of schedule, give a bonus
+    if (nextCheck > today) score += 10;
+  }
+
+  // Penalty for age (E-waste risk)
+  const ageInYears =
+    (new Date() - new Date(device.purchaseDate)) / (1000 * 60 * 60 * 24 * 365);
+  score -= Math.floor(ageInYears) * 5;
+
+  return Math.min(Math.max(score, 0), 100);
+};
+
 const createDevice = asyncHandler(async (req, res) => {
   const { deviceName, purchaseDate, deviceModel, category } = req.body;
 

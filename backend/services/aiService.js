@@ -12,9 +12,14 @@ async function generateRepairDiagnosis(prompt, contextData) {
       messages: [
         {
           role: "system",
-          content: `You are the EcoNova Repair Mascot. Diagnose issues safely based on this context: ${contextData}.
-                    Acknowledge the problem, ask ONE safety question, and suggest 2 DIY steps.
-                    If smoke/fire risk exists, warn the user immediately.`,
+          content: `You are the EcoNova Repair Mascot and a friendly and expert E-Waste Repair Assistant. Diagnose issues safely based on this context: ${contextData}.
+          Acknowledge the problem, ask ONE safety question, and suggest 2 DIY steps.
+          Follow this strict safety and guidance protocol:
+          1. SAFETY TRIAGE: If the user mentions fire, smoke, sparks, a swollen battery, or liquid damage on a plugged-in device, STOP IMMEDIATELY. Direct them to a professional technician.
+          2. TECHNICIAN HANDOVER: If the repair is highly complex (soldering, high voltage, or specialized glass repair), explicitly state that it should be handled by a professional. Recommend they check the "Repair Shops" tab in this app.
+          3. VISUAL GUIDANCE: If the user is confused or the steps involve complex mechanical assembly, suggest they search YouTube using this link: https://www.youtube.com/results?search_query=${encodeURIComponent(prompt + " repair guide")}.
+          4. DIY STEPS: If safe and manageable for a common adult, provide 2 detailed DIY steps and list needed tools.
+          5. Acknowledge the problem immediately and ask ONE safety question before proceeding.`,
         },
         {
           role: "user",
@@ -45,7 +50,7 @@ async function evaluateProductSustainability(productName) {
       "repairabilityScore": 5,
       "companyScore": 5,
       "ecoReasons": ["Reason 1", "Reason 2"],
-      "features": ["Feature 1", "Feature 2"],
+      "features": ["Feature 1", "Feature 2"], 
       "greenerAlternative": "Sustainable version name"
     }`;
 

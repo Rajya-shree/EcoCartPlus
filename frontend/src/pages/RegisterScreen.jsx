@@ -45,10 +45,14 @@ const RegisterScreen = () => {
       // We will add logic to auto-login or redirect the user here later
       console.log("Success:", data);
     } catch (err) {
-      // If the backend sends an error (like "User already exists"),
-      // it will be in err.response.data.message
-      console.error("Registration failed:", err);
-      toast.error(err.response?.data?.message || err.message);
+      // Extract the specific message from the backend response
+      const errorMessage = err.response?.data?.message || err.message;
+
+      // Show the actual message (e.g., "User with this email already exists")
+      toast.error(errorMessage);
+
+      // Keep the console log for debugging, but the toast will handle the user alert
+      console.error("Registration failed:", errorMessage);
     }
   };
 

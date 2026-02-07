@@ -3,6 +3,8 @@ import Header from "./components/Header.jsx"; // 1. Import Header
 import { useAuth } from "./context/AuthContext";
 import axios from "axios"; // Add this
 import { useState, useEffect } from "react"; // Add this
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const { userInfo } = useAuth();
@@ -30,6 +32,11 @@ function App() {
 
   return (
     <div className="App" style={{ backgroundColor: "rgb(241, 245, 249)" }}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <Header /> {/* 2. Add Header at the top */}
       <main className="main-content">
         <Outlet context={{ devices, userInfo, fetchData }} />{" "}

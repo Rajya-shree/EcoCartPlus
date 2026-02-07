@@ -24,7 +24,7 @@ const RepairAssistant = () => {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [location, setLocation] = useState(undefined);
+  const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(true);
 
   const scrollRef = useRef(null);
