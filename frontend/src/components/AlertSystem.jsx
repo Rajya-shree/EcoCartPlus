@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
-import { FaBell } from 'react-icons/fa'; // Import the bell icon
-import './NotificationBell.css';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { FaBell } from "react-icons/fa"; // Import the bell icon
+import "./AlertSystem.css";
 
-const NotificationBell = () => {
+const AlertSystem = () => {
   const { userInfo } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -16,21 +16,21 @@ const NotificationBell = () => {
       headers: { Authorization: `Bearer ${userInfo.token}` },
     };
     try {
-      const { data } = await axios.get('/api/notifications', config);
+      const { data } = await axios.get("/api/notifications", config);
       setNotifications(data);
     } catch (err) {
-      console.error('Failed to fetch notifications:', err);
+      console.error("Failed to fetch notifications:", err);
     }
   };
 
   // Fetch notifications when the component loads
   useEffect(() => {
     fetchNotifications();
-    
+
     // Also fetch notifications every 1 minute
     const interval = setInterval(() => {
       fetchNotifications();
-    }, 60000); 
+    }, 60000);
 
     // Clear interval when component unmounts
     return () => clearInterval(interval);
@@ -47,13 +47,13 @@ const NotificationBell = () => {
       };
       try {
         // Call the "mark as read" endpoint
-        await axios.put('/api/notifications/read', {}, config);
+        await axios.put("/api/notifications/read", {}, config);
         // After a short delay, update the UI (so the dot doesn't vanish instantly)
         setTimeout(() => {
           setNotifications([]); // Clear the list
         }, 3000); // 3-second delay
       } catch (err) {
-        console.error('Failed to mark notifications as read:', err);
+        console.error("Failed to mark notifications as read:", err);
       }
     }
   };
@@ -72,7 +72,8 @@ const NotificationBell = () => {
             {notifications.length > 0 ? (
               notifications.map((notif) => (
                 <div key={notif._id} className="notification-item">
-                  <strong>{notif.task.device.deviceName}</strong>: {notif.message}
+                  <strong>{notif.task.device.deviceName}</strong>:{" "}
+                  {notif.message}
                 </div>
               ))
             ) : (
@@ -85,4 +86,4 @@ const NotificationBell = () => {
   );
 };
 
-export default NotificationBell;
+export default AlertSystem;

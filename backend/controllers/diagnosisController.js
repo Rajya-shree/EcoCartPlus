@@ -1,5 +1,5 @@
 // repairAssistantController.js
-const { getRepairAdvice } = require("../services/geminiService");
+const { getRepairAdvice } = require("../services/groqService");
 
 const diagnoseDevice = async (req, res) => {
   const { message, history, location } = req.body;

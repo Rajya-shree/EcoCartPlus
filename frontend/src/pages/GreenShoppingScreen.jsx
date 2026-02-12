@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ECO_URL } from "../utils/constants";
+import { GREEN_SHOPPING_URL } from "../utils/constants";
 import { toast } from "react-toastify";
-import "./EcoScreen.css";
+import "./GreenShoppingScreen.css";
 import {
   Search,
   ShieldCheck,
@@ -12,7 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-const EcoScreen = () => {
+const GreenShoppingScreen = () => {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ const EcoScreen = () => {
       //   "http://localhost:5000/api/eco-products/analyze",
       //   { query: searchQuery },
       // );
-      const { data } = await axios.post(`${ECO_URL}/search`, { query });
+      const { data } = await axios.post(`${ GREEN_SHOPPING_URL}/search`, { query });
       // Ensure data is always an array
       setProducts(Array.isArray(data) ? data : [data]);
     } catch (err) {
@@ -157,4 +157,4 @@ const MetricBar = ({ icon, label, score, color }) => (
   </div>
 );
 
-export default EcoScreen;
+export default GreenShoppingScreen;

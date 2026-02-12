@@ -11,7 +11,7 @@
 const express = require("express");
 const router = express.Router();
 // IMPORTANT: Import the SEARCH function from the ECO controller
-const { searchEcoProducts } = require("../controllers/ecoProductController");
+const { searchEcoProducts } = require("../controllers/greenShoppingController");
 const { diagnoseDevice } = require("../controllers/aiController");
 
 // Use 'searchEcoProducts' as the handler.

@@ -10,7 +10,7 @@
 
 const express = require("express");
 const router = express.Router();
-const { searchEcoProducts } = require("../controllers/ecoProductController");
+const { searchEcoProducts } = require('../controllers/greenShoppingController');
 
 console.log("✅ ecoProductRoutes LOADED");
 

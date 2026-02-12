@@ -25,6 +25,18 @@
   transform: scale(0.98);
 }
 
+
+/* 🟢 Ensure the MUI DatePicker popup is always above the modal */
+.MuiPopover-root, 
+.MuiPopper-root {
+  z-index: 20001 !important;
+}
+
+/* Fix for the calendar icon clickability */
+.MuiInputAdornment-root button {
+  pointer-events: auto !important;
+}
+
 /* Modal Overlay Fix */
 .modal-overlay {
   position: fixed;

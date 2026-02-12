@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios"; // Import axios
 import { toast } from "react-toastify"; // Import toast
 import { useAuth } from "../context/AuthContext.jsx";
+import { AUTH_URL } from "../utils/constants";
 import "./Auth.css"; // Import the shared CSS
 
 const RegisterScreen = () => {
@@ -30,7 +31,7 @@ const RegisterScreen = () => {
       // This is the API call
       // The proxy in vite.config.js will redirect this to http://localhost:5001/api/users/register
       console.log("Starting axios.post...");
-      const { data } = await axios.post("/api/users/register", {
+      const { data } = await axios.post(`${AUTH_URL}/register`, {
         username,
         email,
         password,

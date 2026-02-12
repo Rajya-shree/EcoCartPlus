@@ -1,8 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const Device = require("../models/deviceModel");
-const MaintenanceTask = require("../models/maintenanceTaskModel");
+
+const Device = require("../models/Device");
+const MaintenanceTask = require("../models/MaintenanceTaskModel");
 const DeviceTask = require("../models/deviceTaskModel");
-const EcoProduct = require("../models/ecoProductModel"); // <-- 1. IMPORT ECOPRODUCT
+const EcoProduct = require("../models/ProductModel");
 
 /**
  * @desc    Get all of the logged-in user's devices

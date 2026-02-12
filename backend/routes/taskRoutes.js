@@ -13,6 +13,8 @@ router.use(protect);
 // GET /api/tasks/upcoming
 router.route("/upcoming").get(getUpcomingTasks);
 
+router.patch('/:id', protect, completeTask);
+
 // PUT /api/tasks/:id/complete
 router.route("/:id/complete").put(completeTask);
 

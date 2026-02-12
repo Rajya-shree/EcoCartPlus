@@ -27,9 +27,10 @@ import {
 import { TextField, Rating, Box } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LIFECYCLE_URL, TASKS_URL } from "../utils/constants";
 import dayjs from "dayjs";
 
-import "./LifeCycleTracker.css";
+import "./LifecycleScreen.css";
 
 // --- HELPERS ---
 // const getSmartRecommendations = (device) => {
@@ -106,7 +107,7 @@ const calculateHealth = (device) => {
 
 Modal.setAppElement("#root");
 
-const LifeCycleTracker = () => {
+const LifecycleScreen = () => {
   const { userInfo } = useAuth();
   const [devices, setDevices] = useState([]);
   const [upcomingTasks, setUpcomingTasks] = useState([]);
@@ -150,8 +151,8 @@ const LifeCycleTracker = () => {
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       const [devicesRes, tasksRes] = await Promise.all([
-        axios.get("/api/devices", config),
-        axios.get("/api/tasks/upcoming", config),
+        axios.get(LIFECYCLE_URL, config),
+        axios.get(`${TASKS_URL}/upcoming`, config),
       ]);
       setDevices(devicesRes.data);
       setUpcomingTasks(tasksRes.data);
@@ -168,7 +169,7 @@ const LifeCycleTracker = () => {
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       await axios.put(
-        `/api/devices/${selectedDevice._id}/addrepair`,
+        `${LIFECYCLE_URL}/${selectedDevice._id}/addrepair`,
         {
           rating: repairRating,
           description: repairDesc,
@@ -184,12 +185,36 @@ const LifeCycleTracker = () => {
     }
   };
 
+  const handleCompleteTask = async (taskId) => {
+    const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+    try {
+      // 1. Update the task status in the database
+      // We assume your taskRoutes/Controller handles PATCH/PUT for completion
+      await axios.patch(`${TASKS_URL}/${taskId}`, { isComplete: true }, config);
+
+      toast.success("Task marks as completed!");
+
+      // 2. Remove the task from the local state so it disappears immediately
+      setUpcomingTasks((prevTasks) =>
+        prevTasks.filter((task) => task._id !== taskId),
+      );
+
+      // 3. Optional: Refresh inventory if completion affects health score
+      fetchData();
+    } catch (err) {
+      console.error("EcoNova+ Task Error:", err);
+      toast.error("Failed to update task");
+    }
+  };
+
   const handleAddDevice = async (e) => {
     e.preventDefault();
+    if (!userInfo) return;
+
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
       await axios.post(
-        "/api/devices",
+        LIFECYCLE_URL,
         {
           deviceName,
           deviceModel,
@@ -200,9 +225,14 @@ const LifeCycleTracker = () => {
       );
       toast.success("Tracking Initialized");
       setIsAddModalOpen(false);
+      // Reset form
+      setDeviceName("");
+      setDeviceModel("");
+      setPurchaseDate(dayjs());
       fetchData();
     } catch (err) {
-      toast.error("Add failed");
+      console.error("Add Device Error:", err);
+      toast.error("Failed to initialize tracking");
     }
   };
 
@@ -210,7 +240,7 @@ const LifeCycleTracker = () => {
     if (!deleteReason.trim()) return toast.warning("Provide a reason");
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
-      await axios.delete(`/api/devices/${deviceToDelete._id}`, {
+      await axios.delete(`${LIFECYCLE_URL}/${deviceToDelete._id}`, {
         data: { reason: deleteReason },
         headers: config.headers,
       });
@@ -423,7 +453,7 @@ const LifeCycleTracker = () => {
                               </button>
                               <button
                                 className="btn-zap"
-                                onClick={() => fetchData()}
+                                onClick={() => handleCompleteTask(task._id)}
                               >
                                 <Zap size={16} />
                               </button>
@@ -523,12 +553,20 @@ const LifeCycleTracker = () => {
                   textField: {
                     size: "small",
                     fullWidth: true,
+                    onClick: (e) => e.stopPropagation(),
                     sx: {
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "12px",
                         backgroundColor: "#f9fafb",
+                        cursor: "pointer",
+                      },
+                      "& .MuiInputBase-input": {
+                        cursor: "pointer",
                       },
                     },
+                  },
+                  popper: {
+                    sx: { zIndex: 20000 },
                   },
                 }}
               />
@@ -681,4 +719,4 @@ const LifeCycleTracker = () => {
   );
 };
 
-export default LifeCycleTracker;
+export default LifecycleScreen;

@@ -1,6 +1,8 @@
 // backend/index.js
 
 //const repairAssistantRoutes = require("./routes/repairAssistantRoutes");
+const videoRecommendationRoutes = require("./routes/videoRecommendationRoutes");
+
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
@@ -45,20 +47,42 @@ app.get("/", (req, res) => {
   res.send("EcoNova+ Backend is running securely.");
 });
 
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/devices", require("./routes/deviceRoutes"));
-app.use("/api/repair-guides", require("./routes/repairRoutes"));
-app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
+// app.use("/api/auth", require("./routes/authRoutes"));
+// app.use("/api/devices", require("./routes/deviceRoutes"));
+// app.use("/api/repair-guides", require("./routes/repairRoutes"));
+// app.use("/api/eco-products", require("./routes/ecoProductRoutes"));
+// app.use("/api/tasks", require("./routes/taskRoutes"));
+// app.use("/api/notifications", require("./routes/notificationRoutes"));
+// app.use("/api/repair-shops", require("./routes/repairShopRoutes"));
+// app.use("/api/youtube", require("./routes/youtubeRoutes"));
+
+// User & Auth
+app.use("/api/auth", require("./routes/authRoutes"));
+
+// Device Lifecycle & Maintenance
+app.use("/api/lifecycle", require("./routes/lifecycleRoutes"));
 app.use("/api/tasks", require("./routes/taskRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
-app.use("/api/repair-shops", require("./routes/repairShopRoutes"));
-app.use("/api/youtube", require("./routes/youtubeRoutes"));
+
+// AI Diagnosis & Repair Guides
+app.use("/api/diagnosis", require("./routes/diagnosisRoutes")); // Groq Powered
+app.use("/api/ifixit", require("./routes/ifixitRoutes")); // iFixit API Proxy
+
+// Green Shopping & Eco-Products
+app.use("/api/green-shopping", require("./routes/greenShoppingRoutes"));
+
+// New Features (Gemini Powered)
+// app.use(
+//   "/api/video-recommendations",
+//   require("./routes/videoRecommendationRoutes"),
+// );
+app.use("/api/video-recommendations", videoRecommendationRoutes);
+app.use("/api/shop-locator", require("./routes/locatorRoutes"));
 
 // 🟢 AI Route - Fixed (Uncommented and verified)
 app.use("/api/ai", require("./routes/aiRoutes"));
 // app.use("/api/repair-assistant", repairAssistantRoutes);
-app.use("/api/repair-assistant", require("./routes/repairAssistantRoutes"));
-
+app.use("/api/diagnosis", require("./routes/diagnosisRoutes"));
 
 //Delete this line if you don't need it
 app.use((req, res, next) => {
@@ -66,6 +90,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root Endpoint
+app.get("/", (req, res) => {
+  res.send("EcoNova+ Backend is running securely.");
+});
 
 // --- 3. Global Error Handling (Professor's Requirement) ---
 app.use(notFound);

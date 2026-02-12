@@ -8,13 +8,20 @@ import {
   Zap,
   Info,
   MapPin,
-  Youtube,
+  YoutubeIcon,
   ExternalLink,
   Star,
   Menu,
 } from "lucide-react";
+// import { DIAGNOSIS_URL } from "../utils/constants";
+// import VideoHelpCard from "../components/VideoHelpCard";
+// import ShopMap from "../components/ShopMap";
+import { DIAGNOSIS_URL, VIDEO_RECOMMENDATIONS_URL } from "../utils/constants"; // Add VIDEO_RECOMMENDATIONS_URL
+import VideoHelpCard from "../components/VideoHelpCard";
+import ShopMap from "../components/ShopMap";
+import { Grid, Typography, Box } from "@mui/material";
 
-const RepairAssistant = () => {
+const DiagnosisScreen = () => {
   const [messages, setMessages] = useState([
     {
       role: "model",
@@ -378,97 +385,186 @@ const RepairAssistant = () => {
     }
   }, []);
 
+  // const handleSend = async (e) => {
+  //   e.preventDefault();
+  //   if (!input.trim() || loading) return;
+
+  //   // const token = localStorage.getItem("token");
+
+  //   // if (!token) {
+  //   //   setMessages((prev) => [
+  //   //     ...prev,
+  //   //     {
+  //   //       role: "model",
+  //   //       content: "Please log in to use the AI repair assistant.",
+  //   //     },
+  //   //   ]);
+  //   //   return;
+  //   // }
+
+  //   const token = localStorage.getItem("userInfo")
+  //     ? JSON.parse(localStorage.getItem("userInfo")).token
+  //     : null;
+
+  //   const userMessage = input;
+  //   setInput("");
+  //   setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+  //   setLoading(true);
+
+  //   try {
+  //     const history = messages.map((m) => ({
+  //       role: m.role,
+  //       parts: [{ text: m.content }],
+  //     }));
+
+  //     const res = await fetch(DIAGNOSIS_URL, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         // Authorization: `Bearer ${token}`, // ← use the variable
+  //         ...(token && { Authorization: `Bearer ${token}` }),
+  //       },
+  //       body: JSON.stringify({ message: userMessage, history, location }),
+  //     });
+
+  //     if (res.status === 401) {
+  //       // Token invalid or expired
+  //       localStorage.removeItem("token"); // optional: clean up
+  //       setMessages((prev) => [
+  //         ...prev,
+  //         {
+  //           role: "model",
+  //           content: "Your session has expired. Please log in again.",
+  //         },
+  //       ]);
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     if (!res.ok) {
+  //       const errorData = await res.json().catch(() => ({}));
+  //       throw new Error(errorData.message || `Server error: ${res.status}`);
+  //     }
+
+  //     const data = await res.json();
+  //     const text = data.advice;
+  //     const grounding = data.grounding || [];
+
+  //     const isSafetyWarning =
+  //       text?.toLowerCase().includes("stop immediately") ||
+  //       text?.toLowerCase().includes("fire") ||
+  //       text?.toLowerCase().includes("professional");
+
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         role: "model",
+  //         content:
+  //           text || "I'm sorry, I couldn't process that. Please try again.",
+  //         isSafetyWarning,
+  //         grounding,
+  //       },
+  //     ]);
+  //   } catch (error) {
+  //     console.error("Repair assistant error:", error);
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         role: "model",
+  //         content:
+  //           "An error occurred while getting repair advice. Please try again later.",
+  //       },
+  //     ]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    // const token = localStorage.getItem("token");
-
-    // if (!token) {
-    //   setMessages((prev) => [
-    //     ...prev,
-    //     {
-    //       role: "model",
-    //       content: "Please log in to use the AI repair assistant.",
-    //     },
-    //   ]);
-    //   return;
-    // }
-
-    const token = localStorage.getItem("userInfo") 
-    ? JSON.parse(localStorage.getItem("userInfo")).token 
-    : null;
-    
+    const token = localStorage.getItem("userInfo")
+      ? JSON.parse(localStorage.getItem("userInfo")).token
+      : null;
 
     const userMessage = input;
+
+    const isRealRepairIssue = userMessage.trim().length > 10;
+
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
     try {
-      const history = messages.map((m) => ({
-        role: m.role,
-        parts: [{ text: m.content }],
-      }));
-
-      const res = await fetch("/api/repair-assistant/diagnose", {
+      // --- 1. Get AI Diagnosis (Text) ---
+      const res = await fetch(DIAGNOSIS_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Authorization: `Bearer ${token}`, // ← use the variable
-          ...(token && { Authorization: `Bearer ${token}` }), 
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({ message: userMessage, history, location }),
+        body: JSON.stringify({ message: userMessage, location }),
       });
 
-      if (res.status === 401) {
-        // Token invalid or expired
-        localStorage.removeItem("token"); // optional: clean up
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "model",
-            content: "Your session has expired. Please log in again.",
-          },
-        ]);
-        setLoading(false);
-        return;
-      }
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Server error: ${res.status}`);
-      }
-
       const data = await res.json();
-      const text = data.advice;
-      const grounding = data.grounding || [];
+      const diagnosisText = data.advice;
 
-      const isSafetyWarning =
-        text?.toLowerCase().includes("stop immediately") ||
-        text?.toLowerCase().includes("fire") ||
-        text?.toLowerCase().includes("professional");
+      // --- 2. Fetch Visual YouTube Cards ---
+      let videoGrounding = [];
+
+      // 🟢 NEW: Only fetch if the AI actually gave repair instructions
+      const aiGaveInstructions =
+        diagnosisText.toLowerCase().includes("step") ||
+        diagnosisText.toLowerCase().includes("tools");
+
+      // if (containsRepairSteps && !loading) {
+      if (isRealRepairIssue && aiGaveInstructions) {
+        try {
+          const videoRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            // We send the diagnosis text to Gemini to ensure alignment
+            body: JSON.stringify({
+              diagnosis: diagnosisText,
+              deviceName: userMessage,
+            }),
+          });
+
+          const videoData = await videoRes.json();
+
+          // Only include videos if they exist and align with the results
+          // if (videoData.videos && videoData.videos.length > 0) {
+          if (videoData.videos?.length > 0) {
+            // Limit to maximum 4 videos as requested
+            // Each object in the array MUST have a 'web' key
+            videoGrounding = videoData.videos.slice(0, 4).map((v) => ({
+              web: {
+                url: v.url,
+                title: v.title,
+                thumbnail: v.thumbnail,
+              },
+            }));
+          }
+        } catch (vErr) {
+          console.warn("No relevant videos found or search failed.");
+        }
+      }
 
       setMessages((prev) => [
         ...prev,
         {
           role: "model",
           content:
-            text || "I'm sorry, I couldn't process that. Please try again.",
-          isSafetyWarning,
-          grounding,
+            diagnosisText || "I couldn't process that. Please try again.",
+          grounding: videoGrounding, // 🟢 Triggers the visual VideoHelpCard components
         },
       ]);
     } catch (error) {
-      console.error("Repair assistant error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "model",
-          content:
-            "An error occurred while getting repair advice. Please try again later.",
-        },
-      ]);
+      console.error("EcoNova Error:", error);
     } finally {
       setLoading(false);
     }
@@ -531,7 +627,77 @@ const RepairAssistant = () => {
   //   }
   // };
 
+  // const renderGrounding = (grounding) => {
+  //   if (!grounding || grounding.length === 0) return null;
+
+  //   const webLinks = grounding.filter((g) => g.web);
+  //   const mapLinks = grounding.filter((g) => g.maps);
+
+  //   return (
+  //     <div style={styles.groundingSection}>
+  //       {webLinks.length > 0 && (
+  //         <div>
+  //           <p style={styles.groundingHeader}>
+  //             <Star size={12} style={{ color: "#f59e0b" }} />
+  //             Grounded Search
+  //           </p>
+  //           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+  //             {webLinks.map((g, idx) => (
+  //               <a
+  //                 key={idx}
+  //                 href={g.web.uri}
+  //                 target="_blank"
+  //                 rel="noopener noreferrer"
+  //                 style={styles.groundingLink}
+  //               >
+  //                 <div style={styles.linkIconWrapper}>
+  //                   <Youtube size={16} />
+  //                 </div>
+  //                 <span
+  //                   style={{
+  //                     display: "-webkit-box",
+  //                     WebkitLineClamp: 1,
+  //                     WebkitBoxOrient: "vertical",
+  //                     overflow: "hidden",
+  //                   }}
+  //                 >
+  //                   {g.web.title || "Repair Guide"}
+  //                 </span>
+  //               </a>
+  //             ))}
+  //           </div>
+  //         </div>
+  //       )}
+  //       {mapLinks.length > 0 && (
+  //         <div>
+  //           <p style={styles.groundingHeader}>
+  //             <Menu size={12} style={{ color: "#dc2626" }} />
+  //             Local Shop Finder
+  //           </p>
+  //           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+  //             {mapLinks.map((g, idx) => (
+  //               <a
+  //                 key={idx}
+  //                 href={g.maps.uri}
+  //                 target="_blank"
+  //                 rel="noopener noreferrer"
+  //                 style={styles.groundingLink}
+  //               >
+  //                 <div style={styles.linkIconWrapper}>
+  //                   <MapPin size={16} />
+  //                 </div>
+  //                 <span>{g.maps.title || "View on Maps"}</span>
+  //               </a>
+  //             ))}
+  //           </div>
+  //         </div>
+  //       )}
+  //     </div>
+  //   );
+  // };
+
   const renderGrounding = (grounding) => {
+    //console.log("Current Grounding Data:", grounding);
     if (!grounding || grounding.length === 0) return null;
 
     const webLinks = grounding.filter((g) => g.web);
@@ -539,63 +705,79 @@ const RepairAssistant = () => {
 
     return (
       <div style={styles.groundingSection}>
-        {webLinks.length > 0 && (
-          <div>
-            <p style={styles.groundingHeader}>
-              <Star size={12} style={{ color: "#f59e0b" }} />
-              Grounded Search
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {webLinks.map((g, idx) => (
-                <a
-                  key={idx}
-                  href={g.web.uri}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.groundingLink}
-                >
-                  <div style={styles.linkIconWrapper}>
-                    <Youtube size={16} />
-                  </div>
-                  <span
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 1,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {g.web.title || "Repair Guide"}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* --- 🟢 1. Visual Shop Cards (Maps) --- */}
         {mapLinks.length > 0 && (
-          <div>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+          >
             <p style={styles.groundingHeader}>
-              <Menu size={12} style={{ color: "#dc2626" }} />
-              Local Shop Finder
+              <MapPin size={12} style={{ color: "#dc2626" }} />
+              Nearby Repair Specialists
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
               {mapLinks.map((g, idx) => (
-                <a
-                  key={idx}
-                  href={g.maps.uri}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.groundingLink}
-                >
-                  <div style={styles.linkIconWrapper}>
-                    <MapPin size={16} />
-                  </div>
-                  <span>{g.maps.title || "View on Maps"}</span>
-                </a>
+                <ShopMap key={idx} shop={g.maps} />
               ))}
             </div>
           </div>
         )}
+
+        {/* --- 🟢 2. Visual Video Cards (YouTube) --- */}
+        {/* {webLinks.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+              marginTop: "0.5rem",
+            }}
+          >
+            <p style={styles.groundingHeader}>
+              
+              <Zap size={12} style={{ color: "#f59e0b" }} />
+              Educational Resources & Videos
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              {webLinks.map((g, idx) => (
+                <VideoHelpCard key={idx} video={g.web} />
+              ))}
+            </div>
+          </div>
+        )} */}
+        {/* --- 🟢 2. Modern Video Grid (YouTube) --- */}
+        <Box sx={{ mt: 3, width: "100%" }}>
+          {webLinks.length > 0 && (
+            <>
+              <Typography
+                variant="overline"
+                sx={{
+                  fontWeight: "bold",
+                  color: "text.secondary",
+                  mb: 2,
+                  display: "block",
+                }}
+              >
+                Curated Educational Resources
+              </Typography>
+
+              {/* 🟢 The Grid Container handles the "Box" arrangement */}
+              <Grid container spacing={2}>
+                {webLinks.map((g, idx) => (
+                  <Grid item xs={12} sm={6} key={idx}>
+                    {/* xs={12} is full width on mobile, sm={6} is half width on desktop */}
+                    <VideoHelpCard video={g.web} />
+                  </Grid>
+                ))}
+              </Grid>
+            </>
+          )}
+        </Box>
       </div>
     );
   };
@@ -738,4 +920,4 @@ const RepairAssistant = () => {
   );
 };
 
-export default RepairAssistant;
+export default DiagnosisScreen;

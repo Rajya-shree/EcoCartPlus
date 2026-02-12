@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   getRepairGuides,
   getRepairScore,
-} = require('../controllers/repairController');
+} = require('../controllers/ifixitController');
 
 // This is a public route for guides
 // POST /api/repair-guides

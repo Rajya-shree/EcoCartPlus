@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import axios from "axios"; // Add this
 import { useState, useEffect } from "react"; // Add this
 import { ToastContainer } from "react-toastify";
+import { LIFECYCLE_URL } from "./utils/constants";  
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -13,9 +14,10 @@ function App() {
   // 🟢 FETCH DATA FROM DATABASE
   const fetchData = async () => {
     if (!userInfo || !userInfo.token) return;
+
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
     try {
-      const { data } = await axios.get("/api/devices", config);
+      const { data } = await axios.get(LIFECYCLE_URL, config);
       setDevices(data);
     } catch (err) {
       // console.error("Error fetching data in App.jsx", err);

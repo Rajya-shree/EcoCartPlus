@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const RepairShop = require("../models/repairShopModel"); // This was missing and caused a crash
+const RepairShop = require("../models/ShopModel"); // This was missing and caused a crash
 
 /**
  * @desc    Get all repair shops with distance calculation
@@ -37,7 +37,7 @@ const getRepairShops = asyncHandler(async (req, res) => {
           userLat,
           userLon,
           shop.latitude,
-          shop.longitude
+          shop.longitude,
         ).toFixed(2) + " km",
     }))
     .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));

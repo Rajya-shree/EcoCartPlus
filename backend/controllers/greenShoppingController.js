@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const EcoProduct = require("../models/ecoProductModel");
+const EcoProduct = require("../models/ProductModel");
 const { evaluateProductSustainability } = require("../services/aiService");
 
 // const searchEcoProducts = asyncHandler(async (req, res) => {

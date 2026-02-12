@@ -2,9 +2,9 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
-import './Sidebar.css'; // Your new CSS file
+import './NavigationSidebar.css'; // Your new CSS file
 
-const Sidebar = () => {
+const NavigationSidebar = () => {
   const { userInfo, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -58,4 +58,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default NavigationSidebar;

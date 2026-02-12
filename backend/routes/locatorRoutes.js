@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getRepairShops } = require("../controllers/repairShopController");
+const { getRepairShops } = require("../controllers/locatorController");
 
 // This is a public route
 // GET /api/repair-shops

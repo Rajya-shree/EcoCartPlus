@@ -40,7 +40,7 @@ const getUpcomingTasks = asyncHandler(async (req, res) => {
           console.error("Notification Error:", err.message);
         }
       }
-    })
+    }),
   );
 
   res.status(200).json(tasks);
@@ -51,6 +51,54 @@ const getUpcomingTasks = asyncHandler(async (req, res) => {
  * @route   PUT /api/tasks/:id/complete
  * @access  Private
  */
+// const completeTask = asyncHandler(async (req, res) => {
+//   const task = await DeviceTask.findById(req.params.id);
+
+//   if (!task) {
+//     res.status(404);
+//     throw new Error("Task not found");
+//   }
+//   // Verify the task belongs to the user
+//   if (task.user.toString() !== req.user._id.toString()) {
+//     res.status(401);
+//     throw new Error("User not authorized");
+//   }
+
+//   task.isComplete = true;
+//   await task.save();
+
+//   res.status(200).json({ message: "Task marked as complete" });
+//   if (task.user.toString() !== req.user._id.toString()) {
+//     res.status(401);
+//     throw new Error("User not authorized");
+//   }
+
+//   // 1. Mark current task complete
+//   task.isComplete = true;
+//   task.completedAt = new Date();
+//   const updatedTask = await task.save();
+
+//   // 🟢 2. NEW: Delete the notification associated with this task
+//   // This ensures the red dot updates immediately in the Header
+//   await Notification.findOneAndDelete({ task: task._id });
+
+//   // 3. Create the next recurring task
+//   const newDueDate = new Date();
+//   newDueDate.setMonth(newDueDate.getMonth() + (task.frequencyMonths || 6));
+
+//   await DeviceTask.create({
+//     device: task.device,
+//     user: task.user,
+//     taskName: task.taskName,
+//     dueDate: newDueDate,
+//     isComplete: false,
+//     frequencyMonths: task.frequencyMonths || 6,
+//     deviceCategory: task.deviceCategory,
+//   });
+
+//   res.status(200).json(updatedTask);
+// });
+
 const completeTask = asyncHandler(async (req, res) => {
   const task = await DeviceTask.findById(req.params.id);
 
@@ -59,6 +107,7 @@ const completeTask = asyncHandler(async (req, res) => {
     throw new Error("Task not found");
   }
 
+  // Verify ownership
   if (task.user.toString() !== req.user._id.toString()) {
     res.status(401);
     throw new Error("User not authorized");
@@ -69,11 +118,11 @@ const completeTask = asyncHandler(async (req, res) => {
   task.completedAt = new Date();
   const updatedTask = await task.save();
 
-  // 🟢 2. NEW: Delete the notification associated with this task
-  // This ensures the red dot updates immediately in the Header
+  // 2. Cleanup associated notifications
+  // This ensures the red dot in the Header disappears immediately
   await Notification.findOneAndDelete({ task: task._id });
 
-  // 3. Create the next recurring task
+  // 3. Create the next recurring task for Lifecycle Tracking
   const newDueDate = new Date();
   newDueDate.setMonth(newDueDate.getMonth() + (task.frequencyMonths || 6));
 
@@ -87,8 +136,10 @@ const completeTask = asyncHandler(async (req, res) => {
     deviceCategory: task.deviceCategory,
   });
 
+  // 4. Send ONLY ONE response
   res.status(200).json(updatedTask);
 });
+
 
 /**
  * @desc    Get all tasks for a single device

@@ -1,5 +1,44 @@
 const asyncHandler = require("express-async-handler");
 const axios = require("axios");
+const { generateVideoQuery } = require("../services/geminiService");
+
+const getVideoRecommendations = asyncHandler(async (req, res) => {
+  const { diagnosis, deviceName } = req.body;
+
+  // 1. Get Optimized Query from Gemini
+  const searchQuery = await generateVideoQuery(
+    diagnosis,
+    deviceName || "electronics",
+  );
+
+  // 2. Fetch from YouTube API
+  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+  const youtubeUrl = `https://www.googleapis.com/youtube/v3/search`;
+
+  try {
+    const response = await axios.get(youtubeUrl, {
+      params: {
+        part: "snippet",
+        q: searchQuery,
+        key: YOUTUBE_API_KEY,
+        maxResults: 3,
+        type: "video",
+      },
+    });
+
+    const videos = response.data.items.map((item) => ({
+      videoId: item.id.videoId,
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+    }));
+
+    res.status(200).json({ searchQuery, videos });
+  } catch (error) {
+    res.status(500);
+    throw new Error("YouTube Sync Failed");
+  }
+});
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search";
@@ -49,4 +88,5 @@ const searchYouTube = asyncHandler(async (req, res) => {
 
 module.exports = {
   searchYouTube,
+  getVideoRecommendations,
 };

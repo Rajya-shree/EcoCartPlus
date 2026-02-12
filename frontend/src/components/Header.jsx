@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { generateMaintenanceReminders } from "../utils/maintenance.js";
+import { LIFECYCLE_URL, NOTIFICATIONS_URL } from "../utils/constants";
 import { toast } from "react-toastify";
 
 // Material UI Imports
@@ -30,7 +31,13 @@ const Header = () => {
     if (!userInfo) return;
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-      const { data } = await axios.get("/api/devices", config);
+      const { data } = await axios.get(LIFECYCLE_URL, config);
+
+      // Logic to check if any device in 'data' needs attention
+      const needsAttention = data.filter(
+        (device) => device.status === "Needs Maintenance",
+      );
+      setNotificationCount(needsAttention.length);
 
       let totalPending = 0;
       data.forEach((device) => {
@@ -98,7 +105,7 @@ const Header = () => {
           <Box sx={{ display: { xs: "none", md: "flex" }, gap: 3 }}>
             <Button
               component={Link}
-              to="/"
+              to="/dashboard"
               color="inherit"
               sx={{ fontWeight: 600 }}
             >
@@ -106,19 +113,19 @@ const Header = () => {
             </Button>
             <Button
               component={Link}
-              to="/green-shop"
+              to="/green-shopping"
               color="inherit"
               sx={{ fontWeight: 500 }}
             >
-              Green Shop
+              Green Shopping
             </Button>
             <Button
               component={Link}
-              to="/repair-ai" // 🟢 NEW SECTION
+              to="/diagnosis" // 🟢 NEW SECTION
               color="inherit"
               sx={{ fontWeight: 500 }}
             >
-              Repair AI
+              Repair Assistant
             </Button>
             <Button
               component={Link}

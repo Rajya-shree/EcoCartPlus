@@ -5,7 +5,7 @@ const {
   createDevice,
   deleteDevice, // <-- IMPORT
   incrementRepairCount,
-} = require("../controllers/deviceController");
+} = require("../controllers/lifecycleController");
 const { protect } = require("../middleware/authMiddleware"); // Import our protection
 
 // All routes here will be protected by the 'protect' middleware
@@ -18,6 +18,6 @@ router.route("/").get(protect, getMyDevices).post(protect, createDevice);
 router.route("/:id").delete(protect, deleteDevice);
 
 // PUT /api/devices/:id/addrepair
-router.route('/:id/addrepair').put(protect, incrementRepairCount);
+router.route("/:id/addrepair").put(protect, incrementRepairCount);
 
 module.exports = router;
