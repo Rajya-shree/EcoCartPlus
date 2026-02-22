@@ -39,7 +39,9 @@
   font-weight: 500;
   border-radius: 6px;
   font-size: 1rem;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .sidebar-link:hover {

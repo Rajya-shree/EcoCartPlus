@@ -4,6 +4,7 @@ import axios from "axios"; // 2. Import axios
 import { toast } from "react-toastify"; // 3. Import toast
 import "./Auth.css"; // Import the shared CSS
 import { useAuth } from "../context/AuthContext.jsx";
+import { AUTH_URL } from "../utils/constants";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ const LoginScreen = () => {
 
     try {
       // This is the API call
-      const { data } = await axios.post("/api/users/login", {
+      const { data } = await axios.post(`${AUTH_URL}/login`, {
         email,
         password,
       });

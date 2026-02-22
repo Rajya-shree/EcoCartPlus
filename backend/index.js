@@ -19,7 +19,7 @@ const MONGO_URI = process.env.MONGO_URI;
 
 const app = express();
 
-// --- 1. Session Management (Professor's Requirement) ---
+// --- 1. Session Management  ---
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "econova_secret_key",
@@ -41,8 +41,15 @@ app.use(
     credentials: true, // Required for sessions to work over CORS
   }),
 );
+// Logger Middleware
+app.use((req, res, next) => {
+  console.log("Incoming:", req.method, req.originalUrl);
+  next();
+});
 
 // --- 2. Routes ---
+
+//Root End
 app.get("/", (req, res) => {
   res.send("EcoNova+ Backend is running securely.");
 });
@@ -80,20 +87,17 @@ app.use("/api/video-recommendations", videoRecommendationRoutes);
 app.use("/api/shop-locator", require("./routes/locatorRoutes"));
 
 // 🟢 AI Route - Fixed (Uncommented and verified)
-app.use("/api/ai", require("./routes/aiRoutes"));
-// app.use("/api/repair-assistant", repairAssistantRoutes);
-app.use("/api/diagnosis", require("./routes/diagnosisRoutes"));
+// app.use("/api/ai", require("./routes/aiRoutes"));
 
-//Delete this line if you don't need it
-app.use((req, res, next) => {
-  console.log("Incoming:", req.method, req.originalUrl);
-  next();
-});
+// app.use("/api/repair-assistant", repairAssistantRoutes);
+// app.use("/api/diagnosis", require("./routes/diagnosisRoutes"));
+
+
 
 // Root Endpoint
-app.get("/", (req, res) => {
-  res.send("EcoNova+ Backend is running securely.");
-});
+// app.get("/", (req, res) => {
+//   res.send("EcoNova+ Backend is running securely.");
+// });
 
 // --- 3. Global Error Handling (Professor's Requirement) ---
 app.use(notFound);

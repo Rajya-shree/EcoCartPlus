@@ -1,0 +1,244 @@
+
+/**/
+.pro-diagnosis-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Use margin-left to push the entire screen away from the sidebar */
+    /* Adjust these values to match your actual sidebar widths */
+    margin-left: var(--sidebar-width, 280px); 
+    transition: margin-left 0.3s ease;
+}
+
+.floating-command-center {
+    position: fixed;
+    bottom: 0;
+    /* This ensures the footer only spans the remaining width */
+    left: var(--sidebar-width, 280px);
+    right: 0;
+    padding: 2rem;
+    background: linear-gradient(to top, white 80%, transparent);
+    z-index: 40;
+    transition: left 0.3s ease;
+    display: flex;
+    justify-content: center;
+}
+
+.chat-limit-container {
+    width: 100%;
+    max-width: 1000px; /* Limits width for readability within the remaining space */
+    margin: 0 auto;
+    padding: 2rem;
+}
+/**/
+
+.pro-diagnosis-screen {
+  min-height: 100vh;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+}
+
+.pro-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: white;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 2rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.divider-v {
+  width: 1px;
+  height: 1rem;
+  background: #e2e8f0;
+}
+.header-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.sync-badge {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 250px; /* Space for command center */
+}
+
+.chat-limit-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.msg-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+.user-row {
+  flex-direction: row-reverse;
+}
+
+.avatar-container {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bot-avatar {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #10b981;
+}
+.user-avatar {
+  background: #059669;
+  color: white;
+}
+
+.msg-bubble {
+  padding: 2.5rem;
+  border-radius: 2.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bot-bubble {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-top-left-radius: 0;
+}
+.user-bubble {
+  background: #059669;
+  color: white;
+  border-top-right-radius: 0;
+}
+
+/* Typography System */
+.pro-h1 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.5rem;
+}
+.pro-h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pro-p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  color: inherit;
+}
+.pro-li {
+  margin-left: 1.5rem;
+  position: relative;
+  list-style: none;
+  margin-bottom: 0.75rem;
+}
+.pro-li::before {
+  content: "";
+  position: absolute;
+  left: -1.2rem;
+  top: 0.6rem;
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+}
+
+/* Floating Command Center */
+.floating-command-center {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, white 80%, transparent);
+}
+
+.input-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.input-form {
+  position: relative;
+}
+.terminal-icon {
+  position: absolute;
+  left: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #cbd5e1;
+}
+
+.pro-input-field {
+  width: 100%;
+  padding: 2rem 20rem 2rem 5rem;
+  border-radius: 3rem;
+  border: 2px solid #f1f5f9;
+  font-size: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+.initiate-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  background: #0f172a;
+  color: white;
+  padding: 0 3rem;
+  border-radius: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.1rem;
+}
+
+.engine-version {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 10px;
+  color: #94a3b8;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}

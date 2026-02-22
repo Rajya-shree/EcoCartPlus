@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import NotificationBell from './NotificationBell';
+// import NotificationBell from './NotificationBell';
 import './NavigationSidebar.css'; // Your new CSS file
 
 const NavigationSidebar = () => {
@@ -27,7 +28,7 @@ const NavigationSidebar = () => {
         <NavLink to="/eco-shopping" className="sidebar-link">
           Green Shopping
         </NavLink>
-        
+
         {/* Only show "Lifecycle Tracker" if user is logged in */}
         {userInfo && (
           <NavLink to="/dashboard" className="sidebar-link">

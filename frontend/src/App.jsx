@@ -1,15 +1,36 @@
 import { Outlet } from "react-router-dom";
-import Header from "./components/Header.jsx"; // 1. Import Header
+import Sidebar from "./components/Sidebar.jsx";
 import { useAuth } from "./context/AuthContext";
 import axios from "axios"; // Add this
 import { useState, useEffect } from "react"; // Add this
 import { ToastContainer } from "react-toastify";
-import { LIFECYCLE_URL } from "./utils/constants";  
+import { LIFECYCLE_URL } from "./utils/constants";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function App() {
   const { userInfo } = useAuth();
   const [devices, setDevices] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // 🟢 Redirect logic: If no user and not on login/register, go to login
+    if (
+      !userInfo &&
+      location.pathname !== "/login" &&
+      location.pathname !== "/register"
+    ) {
+      navigate("/login");
+    }
+    // 🟢 Optional: If user IS logged in and tries to go to /login, send them to dashboard
+    if (
+      userInfo &&
+      (location.pathname === "/login" || location.pathname === "/register")
+    ) {
+      navigate("/dashboard");
+    }
+  }, [userInfo, location.pathname, navigate]);
 
   // 🟢 FETCH DATA FROM DATABASE
   const fetchData = async () => {
@@ -33,18 +54,75 @@ function App() {
   }, [userInfo]);
 
   return (
-    <div className="App" style={{ backgroundColor: "rgb(241, 245, 249)" }}>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
-      <Header /> {/* 2. Add Header at the top */}
-      <main className="main-content">
-        <Outlet context={{ devices, userInfo, fetchData }} />{" "}
-        {/* 3. Outlet renders the current page */}
-      </main>
+    // <div
+    //   style={{
+    //     display: "flex",
+    //     width: "100vw",
+    //     height: "100vh",
+    //     overflow: "hidden",
+    //   }}
+    // >
+    //   {/* 1. SIDEBAR (Fixed Width) */}
+    //   {userInfo && <Sidebar />}
+
+    //   {/* 2. MAIN CONTENT (Fills remaining place) */}
+    //   <div
+    //     style={{
+    //       flex: 1,
+    //       height: "100%",
+    //       overflowY: "auto",
+    //       backgroundColor: "#f8fafc",
+    //     }}
+    //   >
+    //     <ToastContainer position="top-right" autoClose={3000} />
+
+    //     {/* Responsive container for your screens */}
+    //     <main style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto" }}>
+    //       <Outlet context={{ devices, userInfo, fetchData }} />
+    //     </main>
+    //   </div>
+    // </div>
+
+    <div
+      style={{
+        display: "flex",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      {/* Sidebar only shows if logged in */}
+      {userInfo && <Sidebar />}
+
+      <div
+        style={{
+          flex: 1,
+          height: "100%",
+          overflowY: "auto",
+          backgroundColor: "#f8fafc",
+          transition: "margin-left 0.3s ease",
+        }}
+      >
+        <main style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
+          <Outlet context={{ userInfo, userInfo, fetchData }} />
+        </main>
+      </div>
     </div>
+
+    //Old UI
+    // <div className="App" style={{ backgroundColor: "rgb(241, 245, 249)" }}>
+    //   <ToastContainer
+    //     position="top-right"
+    //     autoClose={3000}
+    //     hideProgressBar={false}
+    //   />
+    //   {/* Vertical Sidebar handles all Header logic now */}
+    //   <NavigationSidebar />
+    //   <main className="main-content">
+    //     <Outlet context={{ devices, userInfo, fetchData }} />{" "}
+    //     {/* 3. Outlet renders the current page */}
+    //   </main>
+    // </div>
   );
 }
 

@@ -15,4 +15,9 @@ router.route("/").get(getUnreadNotifications);
 // PUT /api/notifications/read
 router.route("/read").put(markNotificationsAsRead);
 
+// router.route('/').get(protect, getNotifications);
+
+// Mark a specific notification as read
+router.route('/:id/read').put(protect, markNotificationsAsRead);
+
 module.exports = router;

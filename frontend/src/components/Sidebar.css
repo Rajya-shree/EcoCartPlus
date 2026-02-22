@@ -1,0 +1,603 @@
+/* Sidebar.css */
+
+/**/
+/* Sidebar.css - Optimized Structural Isolation */
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* 🟢 Mandatory 2cm Lift */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Feed Item Container */
+.feed-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.feed-item:hover,
+.feed-item.active {
+  background: #ecfdf5;
+  border-color: #d1fae5;
+}
+
+.feed-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.feed-badge {
+  background: #10b981;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dark Card & Terminate */
+.user-card {
+  background: #111827;
+  padding: 14px;
+  border-radius: 18px;
+  color: white;
+}
+.terminate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.terminate-btn:hover {
+  color: #f43f5e;
+}
+/**/
+
+/**/
+
+/* Sidebar Layout Fixes */
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 280px;
+  padding: 5px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* 🟢 80px (2cm) Lift */
+}
+
+/* 🟢 BELL BADGE WITH NAME */
+.notification-bell-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 8px;
+  width: fit-content;
+}
+
+.bell-badge {
+  background: #e11d48;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bell-badge p {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 🟢 DROPDOWN POSITIONING */
+.notification-dropdown-overlay {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  width: 280px;
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  z-index: 100;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+/* Professional Sizing (Fix Zoom) */
+.nav-item {
+  font-size: 0.85rem;
+  padding: 10px 14px;
+}
+.username {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.status {
+  font-size: 0.65rem;
+  color: #10b981;
+}
+
+.user-card {
+  background: #111827;
+  padding: 14px;
+  border-radius: 16px;
+  color: white;
+}
+
+.terminate-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 0;
+}
+/**/
+
+/**/
+
+/* src/components/Sidebar.css */
+
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1.25rem 1rem;
+  box-sizing: border-box;
+}
+
+/* 🟢 THE 2CM LIFT */
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* Exact 80px lift from the bottom */
+}
+
+.user-card {
+  background: #111827;
+  padding: 14px;
+  border-radius: 16px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Tight vertical spacing */
+}
+
+/* 🟢 BELL TRIGGER STYLING */
+.notification-bell-trigger {
+  position: relative;
+  cursor: pointer;
+  width: fit-content;
+  padding: 2px 0;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -2px;
+  right: -8px;
+  background: #e11d48;
+  color: white;
+  font-size: 8px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 10px;
+  border: 1.5px solid #111827; /* Blends with dark card background */
+}
+
+.terminate-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.terminate-btn:hover {
+  color: #f43f5e;
+}
+/**/
+
+/**/
+/* src/components/Sidebar.css */
+
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1.25rem 1rem;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+/* 🟢 THE 2CM LIFT */
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* Exact gap from bottom */
+}
+
+/* Dark Profile container */
+.user-card {
+  background: #111827;
+  padding: 14px;
+  border-radius: 16px;
+  color: white;
+  margin-bottom: 8px; /* Space between card and button */
+}
+
+/* 🟢 SEPARATED TERMINATE BUTTON */
+.terminate-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 0;
+  transition: color 0.2s;
+}
+
+.terminate-btn:hover {
+  color: #f43f5e;
+}
+
+/* Bell badge */
+.notification-bell-trigger {
+  position: relative;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #e11d48;
+  color: white;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 10px;
+  border: 2px solid white;
+}
+
+/* Fix "Zoomed Out" scaling */
+.brand-name {
+  font-size: 1.1rem;
+}
+.nav-item {
+  font-size: 0.85rem;
+  padding: 10px 14px;
+}
+.username {
+  font-size: 0.85rem;
+}
+.status {
+  font-size: 0.65rem;
+}
+/**/
+
+/**/
+/* Sidebar.css */
+
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding: 24px 16px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth sliding */
+}
+
+/* 🟢 THE MINIMIZED STATE FIX */
+.sidebar-wrapper.is-collapsed {
+  align-items: center; /* Centers the icons perfectly */
+  padding: 24px 8px; /* Narrower padding for small width */
+}
+
+.sidebar-wrapper.is-collapsed .nav-item {
+  justify-content: center;
+  padding: 12px;
+  width: 48px; /* Square icons when collapsed */
+}
+
+.sidebar-wrapper.is-collapsed .user-card {
+  justify-content: center;
+  padding: 8px;
+}
+
+/* 🟢 THE 2CM LIFT & TERMINATE BUTTON */
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* This is your 2cm safety gap */
+}
+
+.terminate-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-wrapper.is-collapsed .terminate-btn span {
+  display: none; /* Hide 'Terminate' text when collapsed */
+}
+/**/
+
+/**/
+/* Ensure the sidebar takes full height but doesn't overflow */
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; /* Use Dynamic VH for browser compatibility */
+  background: rgb(254, 255, 254);
+  border-right: 1px solid #f0f0f0;
+  padding: 14px 13px;
+  box-sizing: border-box;
+}
+
+/* Push the footer to the bottom and LIFT IT */
+.sidebar-footer {
+  margin-top: auto; /* Pushes this to the bottom */
+  padding-bottom: 80px; /* Lifts the button ~2cm from the very bottom */
+  padding-top: 20px;
+}
+
+.login-trigger-btn {
+  background: #059669;
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: bold;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+}
+
+/* Fix the 'Zoomed' look on the Main Content */
+/* Add this to your main layout file or global CSS */
+.main-content-area {
+  width: 100%;
+  max-width: 1400px; /* Prevents awkward stretching on big screens */
+  margin: 0 auto; /* Centers the content */
+  padding: 40px;
+}
+
+/* Mobile specific lift - slightly less than desktop */
+@media (max-width: 1024px) {
+  .sidebar-footer {
+    padding-bottom: 40px;
+  }
+}
+/**/
+
+/**/
+/* This container wraps your Sidebar + Main Content */
+.app-layout {
+  display: flex;
+  flex-direction: column; /* Stacked for mobile/vertical */
+  min-height: 100dvh;
+  width: 100%;
+}
+
+/* For Tablets and Desktops (Horizontal) */
+@media (min-width: 768px) {
+  .app-layout {
+    flex-direction: row; /* Side-by-side for widescreen */
+  }
+
+  .sidebar {
+    width: 260px; /* Fixed width for your sidebar */
+    height: 100dvh;
+    position: sticky;
+    top: 0;
+  }
+}
+
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+/**/
+
+.sidebar-container {
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0; /* Prevents sidebar from being squashed */
+}
+
+/* When Leaf is clicked, width shrinks to show icons only */
+.sidebar-container.collapsed {
+  width: 80px;
+}
+
+.sidebar-header {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-icon {
+  background: #059669; /* Your professional green */
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.nav-item:hover {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.nav-item.active {
+  background: #059669;
+  color: #ffffff;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px;
+}
+
+.user-card {
+  background: #111827;
+  padding: 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  background: #059669;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.username {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status {
+  margin: 0;
+  font-size: 0.6rem;
+  color: #10b981;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+}
