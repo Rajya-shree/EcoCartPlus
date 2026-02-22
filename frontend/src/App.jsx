@@ -95,14 +95,19 @@ function App() {
       {userInfo && <Sidebar />}
 
       <div
+      className="main-content-area"
         style={{
-          flex: 1,
+          // flex: 1,
+          flexGrow: 1,
+          flexShrink: 1,
           height: "100%",
           overflowY: "auto",
           backgroundColor: "#f8fafc",
           transition: "margin-left 0.3s ease",
+          position: "relative",
         }}
       >
+        <ToastContainer position="top-right" autoClose={3000} />
         <main style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
           <Outlet context={{ userInfo, userInfo, fetchData }} />
         </main>

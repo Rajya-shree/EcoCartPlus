@@ -90,6 +90,7 @@ const Sidebar = () => {
             <div
               className="logo-icon"
               onClick={() => !mobile && setIsCollapsed(!isCollapsed)}
+              style={{ cursor: "pointer" }}
             >
               <Leaf color="white" size={20} />
             </div>
@@ -214,7 +215,8 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`hidden lg:block h-screen sticky top-0 shrink-0 z-50 transition-all duration-300 ${isCollapsed ? "w-20" : "w-80"}`}
+      //   className={`hidden lg:block h-screen sticky top-0 shrink-0 z-50 transition-all duration-300 ease-in-out ${isCollapsed ? "w-20" : "w-80"}`}
+      className={`sidebar-aside ${isCollapsed ? "collapsed" : "expanded"}`}
     >
       <NavContent />
     </aside>

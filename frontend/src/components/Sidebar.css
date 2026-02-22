@@ -1,4 +1,129 @@
 /* Sidebar.css */
+/* Sidebar.css */
+
+/* 1. Parent Aside: Controls the physical footprint */
+.sidebar-aside {
+  height: 100vh;
+  position: sticky; /* Sticky keeps it in flow but stays on screen */
+  top: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0; /* Critical: prevents main content from squishing it */
+  z-index: 50;
+  background: #ffffff;
+  border-right: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.sidebar-aside.expanded {
+  width: 320px;
+}
+.sidebar-aside.collapsed {
+  width: 80px;
+}
+
+/* 2. Wrapper: The internal flex layout */
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 3. Handling Icons and Text */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap; /* Prevents text from wrapping during transition */
+}
+
+/* Ensure icons are always visible and centered when collapsed */
+.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.collapsed .nav-item .icon {
+  min-width: 24px;
+}
+
+/* Hide text when collapsed */
+.collapsed span,
+.collapsed .brand-name,
+.collapsed .user-info,
+.collapsed .terminate-btn span {
+  display: none;
+}
+
+/* 🟢 THE 2CM LIFT (Footer) */
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px;
+}
+
+/**/
+/* Ensure the aside actually takes up space in the flex row */
+.sidebar-aside {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #ffffff;
+  border-right: 1px solid #f1f5f9;
+}
+
+.sidebar-aside.expanded {
+  width: 320px;
+} /* Equivalent to w-80 */
+.sidebar-aside.collapsed {
+  width: 80px;
+} /* Equivalent to w-20 */
+
+.sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+/* 🟢 THE 2CM LIFT */
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 80px; /* This provides the exact gap from the bottom */
+}
+
+/* Profiles & Cards */
+.user-card {
+  background: #111827;
+  padding: 14px;
+  border-radius: 16px;
+  color: white;
+  margin-top: 12px;
+}
+
+/* Handle text hiding when collapsed */
+.collapsed span,
+.collapsed .brand-name,
+.collapsed .user-info {
+  display: none;
+}
+
+.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+/**/
 
 /**/
 /* Sidebar.css - Optimized Structural Isolation */
@@ -76,6 +201,25 @@
   color: #f43f5e;
 }
 /**/
+
+.sidebar-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #111827; /* Or your preferred dark theme */
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+/* Ensure icons don't shrink awkwardly */
+.nav-item .icon {
+  min-width: 22px;
+}
+
+.is-collapsed .brand-name,
+.is-collapsed span {
+  display: none;
+}
 
 /**/
 

@@ -1,34 +1,156 @@
+/**/
+/* Ensure the main container grows to fill the area beside the sidebar */
+.pro-diagnosis-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  
+  transition: margin-left 0.3s ease;
+}
+
+/* Fix the Command Center to stay within the "space left" */
+/* .floating-command-center {
+  position: fixed;
+  bottom: 0;
+  left: 260px; 
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, white 80%, transparent);
+  z-index: 40;
+  transition: left 0.3s ease;
+  display: flex;
+  justify-content: center;
+} */
+
+.floating-command-center {
+    position: absolute; /* Changed from fixed to absolute */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    /* This will now be centered only within the remaining space */
+}
+
+/* Adjust the messages canvas to not be hidden by the footer */
+.chat-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 200px; /* Space for the floating dock */
+}
+/**/
 
 /**/
 .pro-diagnosis-screen {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    /* Use margin-left to push the entire screen away from the sidebar */
-    /* Adjust these values to match your actual sidebar widths */
-    margin-left: var(--sidebar-width, 280px); 
-    transition: margin-left 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* Use margin-left to push the entire screen away from the sidebar */
+  /* Adjust these values to match your actual sidebar widths */
+  margin-left: var(--sidebar-width, 280px);
+  transition: margin-left 0.3s ease;
 }
 
 .floating-command-center {
-    position: fixed;
-    bottom: 0;
-    /* This ensures the footer only spans the remaining width */
-    left: var(--sidebar-width, 280px);
-    right: 0;
-    padding: 2rem;
-    background: linear-gradient(to top, white 80%, transparent);
-    z-index: 40;
-    transition: left 0.3s ease;
-    display: flex;
-    justify-content: center;
+  position: fixed;
+  bottom: 0;
+  /* This ensures the footer only spans the remaining width */
+  left: var(--sidebar-width, 280px);
+  right: 0;
+  padding: 2rem;
+  background: linear-gradient(to top, white 80%, transparent);
+  z-index: 40;
+  transition: left 0.3s ease;
+  display: flex;
+  justify-content: center;
 }
 
 .chat-limit-container {
-    width: 100%;
-    max-width: 1000px; /* Limits width for readability within the remaining space */
-    margin: 0 auto;
-    padding: 2rem;
+  width: 100%;
+  max-width: 1000px; /* Limits width for readability within the remaining space */
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* The entire screen occupies 100% of the flex-item width */
+.diagnosis-viewport {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%; /* Occupies only what the flex container gives it */
+  background: #ffffff;
+}
+
+/* Header stays at the top of the remaining space */
+.diagnosis-hub-header {
+  padding: 2rem 3rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Chat Area - Flexible Height */
+.chat-canvas-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  /* Bottom padding ensures messages aren't hidden by the floating dock */
+  padding-bottom: 200px;
+}
+
+/* Message Width Limitation for Readability */
+.message-flow-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Floating Command Dock - Anchored to the bottom of the content area */
+.command-dock-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 3rem 3rem 3rem;
+  background: linear-gradient(to top, white 70%, transparent);
+  pointer-events: none; /* Allows scrolling through the gradient */
+}
+
+.dock-inner-limit {
+  max-width: 1000px;
+  margin: 0 auto;
+  pointer-events: auto; /* Re-enables clicks for the input */
+}
+
+.dock-form {
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  border-radius: 3rem;
+}
+
+.dock-input {
+  width: 100%;
+  padding: 1.75rem 16rem 1.75rem 5rem;
+  border-radius: 3rem;
+  border: 2px solid #f1f5f9;
+  background: white;
+  font-size: 1.1rem;
+  outline: none;
+}
+
+.initiate-trace-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  background: #0f172a;
+  color: white;
+  padding: 0 2.5rem;
+  border-radius: 2.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
 }
 /**/
 

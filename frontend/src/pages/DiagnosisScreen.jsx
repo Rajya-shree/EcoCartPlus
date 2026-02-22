@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Send,
   User,
@@ -39,99 +39,80 @@ const DiagnosisScreen = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(true);
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, loading]);
-
-  // --- Logic: Backend Communication ---
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
-
-    const token = localStorage.getItem("userInfo")
-      ? JSON.parse(localStorage.getItem("userInfo")).token
-      : null;
-
-    const userMessage = input;
-    const timestamp = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    setInput("");
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: userMessage, timestamp },
+  // --- 🟢 RESTORED: resetChat Function ---
+  const resetChat = () => {
+    setMessages([
+      {
+        role: "model",
+        content:
+          "# Technical Diagnostic Node\nEcoNova Intelligence is active. Describe the hardware failure symptoms.",
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
     ]);
-    setLoading(true);
-
-    try {
-      const res = await fetch(DIAGNOSIS_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ message: userMessage, location }),
-      });
-
-      const data = await res.json();
-      const diagnosisText = data.advice;
-
-      let videoGrounding = [];
-      const aiGaveInstructions =
-        diagnosisText.toLowerCase().includes("step") ||
-        diagnosisText.toLowerCase().includes("tools");
-
-      if (userMessage.length > 10 && aiGaveInstructions) {
-        try {
-          const videoRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              diagnosis: diagnosisText,
-              deviceName: userMessage,
-            }),
-          });
-          const videoData = await videoRes.json();
-          if (videoData.videos?.length > 0) {
-            videoGrounding = videoData.videos.slice(0, 4).map((v) => ({
-              web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
-            }));
-          }
-        } catch (vErr) {
-          console.warn("Video search failed.");
-        }
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "model",
-          content:
-            diagnosisText || "Trace failed. Check hardware connectivity.",
-          grounding: videoGrounding,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ]);
-    } catch (error) {
-      console.error("EcoNova Error:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
-  // --- UI: Typography System / Markdown Parser ---
+  // --- 🟢 RESTORED: renderGrounding Function ---
+  const renderGrounding = (grounding) => {
+    if (!grounding || grounding.length === 0) return null;
+    const webLinks = grounding.filter((g) => g.web);
+    const mapLinks = grounding.filter((g) => g.maps);
+
+    return (
+      <Box className="grounding-area" sx={{ mt: 3, width: "100%" }}>
+        {mapLinks.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              variant="overline"
+              sx={{
+                fontWeight: "bold",
+                color: "text.secondary",
+                mb: 1,
+                display: "block",
+              }}
+            >
+              <MapPin size={12} style={{ color: "#dc2626" }} /> Nearby Repair
+              Specialists
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {mapLinks.map((g, idx) => (
+                <ShopMap key={idx} shop={g.maps} />
+              ))}
+            </Box>
+          </Box>
+        )}
+        {webLinks.length > 0 && (
+          <Box>
+            <Typography
+              variant="overline"
+              sx={{
+                fontWeight: "bold",
+                color: "text.secondary",
+                mb: 1,
+                display: "block",
+              }}
+            >
+              Curated Educational Resources
+            </Typography>
+            <Grid container spacing={2}>
+              {webLinks.map((g, idx) => (
+                <Grid item xs={12} sm={6} key={idx}>
+                  <VideoHelpCard video={g.web} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
+  // --- UI: Typography System ---
   const renderInlineMarkdown = (text, isUser) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
@@ -172,13 +153,12 @@ const DiagnosisScreen = () => {
             {renderInlineMarkdown(line.replace("## ", ""), false)}
           </h2>
         );
-      if (line.startsWith("* ") || line.startsWith("- ")) {
+      if (line.startsWith("* ") || line.startsWith("- "))
         return (
           <li key={i} className="pro-li">
             {renderInlineMarkdown(line.substring(2), false)}
           </li>
         );
-      }
       if (!line.trim()) return <div key={i} style={{ height: "1rem" }} />;
       return (
         <p key={i} className="pro-p">
@@ -188,117 +168,190 @@ const DiagnosisScreen = () => {
     });
   };
 
+  // --- Logic: Backend Communication ---
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const token = localStorage.getItem("userInfo")
+      ? JSON.parse(localStorage.getItem("userInfo")).token
+      : null;
+    const userMessage = input;
+    const timestamp = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setInput("");
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: userMessage, timestamp },
+    ]);
+    setLoading(true);
+
+    try {
+      const res = await fetch(DIAGNOSIS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ message: userMessage, location }),
+      });
+
+      const data = await res.json();
+      let videoGrounding = [];
+      const aiGaveInstructions =
+        data.advice?.toLowerCase().includes("step") ||
+        data.advice?.toLowerCase().includes("tools");
+
+      if (userMessage.length > 10 && aiGaveInstructions) {
+        try {
+          const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              diagnosis: data.advice,
+              deviceName: userMessage,
+            }),
+          });
+          const vData = await vRes.json();
+          if (vData.videos?.length > 0) {
+            videoGrounding = vData.videos.slice(0, 4).map((v) => ({
+              web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
+            }));
+          }
+        } catch (vErr) {
+          console.warn("Video failed.");
+        }
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "model",
+          content: data.advice || "Trace failed.",
+          grounding: videoGrounding,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+          setLocationLoading(false);
+        },
+        () => {
+          setLocationLoading(false);
+        },
+      );
+    } else {
+      setLocationLoading(false);
+    }
+  }, []);
+
   return (
-    <div className="pro-diagnosis-screen">
-      {/* Top Header */}
-      <div className="pro-sticky-header">
-        <div className="header-inner">
-          <div className="header-left">
-            <History className="icon-btn-gray" />
-            <div className="divider-v" />
-            <h1 className="header-title">Hardware Diagnostic Session</h1>
-          </div>
-          <div className="header-right">
-            <div className="sync-badge">
-              <ShieldCheck size={14} /> Synchronized
-            </div>
-            <button
-              className="new-session-btn"
-              onClick={() => window.location.reload()}
-            >
-              <Plus size={20} />
-            </button>
-          </div>
+    <div className="diagnosis-viewport">
+      <header className="diagnosis-hub-header">
+        <div className="header-text">
+          <h2 className="hub-title">
+            AI Diagnostic Assistant{" "}
+            <span className="live-status-pill">Active</span>
+          </h2>
+          {locationLoading && (
+            <p className="geo-wait">Awaiting Geolocation...</p>
+          )}
         </div>
-      </div>
+        <button className="reset-vault-btn" onClick={resetChat}>
+          <Trash2 size={20} />
+        </button>
+      </header>
 
-      {/* Conversation Canvas */}
-      <div className="chat-canvas" ref={scrollRef}>
-        <div className="chat-limit-container">
-          {messages.map((msg, i) => {
-            const isUser = msg.role === "user";
-            return (
-              <div
-                key={i}
-                className={`msg-row ${isUser ? "user-row" : "bot-row"}`}
-              >
+      <div className="chat-canvas-wrapper" ref={scrollRef}>
+        <div className="message-flow-container">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`msg-row ${msg.role === "user" ? "user" : "model"}`}
+            >
+              <div className="avatar-frame">
+                {msg.role === "user" ? <User size={18} /> : <Bot size={18} />}
+              </div>
+              <div className="bubble-context">
                 <div
-                  className={`avatar-container ${isUser ? "user-avatar" : "bot-avatar"}`}
+                  className={`pro-bubble ${msg.isSafetyWarning ? "safety" : ""}`}
                 >
-                  {isUser ? <User size={24} /> : <Bot size={24} />}
-                </div>
-                <div className="msg-bubble-group">
-                  <div
-                    className={`msg-bubble ${isUser ? "user-bubble" : "bot-bubble"}`}
-                  >
-                    {renderFormattedContent(msg.content, isUser)}
-
-                    {!isUser && msg.grounding?.length > 0 && (
-                      <div className="grounding-area">
-                        <h4 className="grounding-label">
-                          <Sparkles size={14} /> Visual Reference Nodes
-                        </h4>
-                        <Grid container spacing={2}>
-                          {msg.grounding.map((g, idx) => (
-                            <Grid item xs={12} sm={6} key={idx}>
-                              <VideoHelpCard video={g.web} />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </div>
-                    )}
-                  </div>
-                  <div className="msg-meta">
-                    <button className="vault-btn">
-                      <Star size={12} /> ADD TO VAULT
-                    </button>
-                    <span>{msg.timestamp}</span>
+                  {msg.isSafetyWarning && (
+                    <div className="safety-alert-tag">
+                      <ShieldAlert size={14} /> Critical Protocol
+                    </div>
+                  )}
+                  <div className="markdown-typography">
+                    {renderFormattedContent(msg.content, msg.role === "user")}
                   </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {loading && (
-            <div className="msg-row bot-row loading-anim">
-              <div className="bot-avatar">
-                <Bot className="animate-bounce" />
-              </div>
-              <div className="loading-shimmer-bubble">
-                <div className="shimmer-line line-75" />
-                <div className="shimmer-line line-50" />
+                {msg.role === "model" && renderGrounding(msg.grounding)}
               </div>
             </div>
+          ))}
+          {loading && (
+            <div className="loading-state-hub">EcoNova is analyzing...</div>
           )}
         </div>
       </div>
 
-      {/* Floating Bottom Command Center */}
-      <div className="floating-command-center">
-        <div className="input-container">
-          <form onSubmit={handleSend} className="input-form">
-            <div className="terminal-icon">
+      <div className="command-dock-footer">
+        <div className="dock-inner-limit">
+          <form onSubmit={handleSend} className="dock-form">
+            <div className="terminal-prefix">
               <Terminal size={24} />
             </div>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Describe the hardware fault SKU..."
-              className="pro-input-field"
+              placeholder="Describe fault or hardware SKU..."
+              className="dock-input"
+              disabled={loading}
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="initiate-btn"
+              className="initiate-trace-btn"
             >
-              {loading ? <RefreshCw className="animate-spin" /> : <Sparkles />}
+              {loading ? (
+                <RefreshCw className="animate-spin" />
+              ) : (
+                <Sparkles size={20} />
+              )}
               <span>Initiate Trace</span>
             </button>
           </form>
-          <p className="engine-version">
-            Predictive Hardware Diagnostic Engine v4.2
-          </p>
+          <div className="engine-status-footer">
+            Predictive Diagnostic Engine v4.2
+          </div>
         </div>
       </div>
     </div>
@@ -306,6 +359,7 @@ const DiagnosisScreen = () => {
 };
 
 export default DiagnosisScreen;
+
 // OLD UI
 // import React, { useState, useRef, useEffect } from "react";
 // import {
