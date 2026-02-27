@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React,{useState} from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 // import NotificationBell from './NotificationBell';
@@ -8,6 +8,8 @@ import './NavigationSidebar.css'; // Your new CSS file
 const NavigationSidebar = () => {
   const { userInfo, logout } = useAuth();
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(true);
+const toggleSidebar = () => setIsExpanded(!isExpanded);
 
   const logoutHandler = () => {
     logout();
@@ -15,7 +17,7 @@ const NavigationSidebar = () => {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <NavLink to="/" className="sidebar-logo">
         EcoCartPlus
       </NavLink>

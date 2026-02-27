@@ -17,25 +17,23 @@ import RegisterScreen from "./pages/RegisterScreen";
 //import RepairAI from "./pages/RepairAI"; // 🟢 NEW: Dedicated Chatbot page
 import GreenShoppingScreen from "./pages/GreenShoppingScreen"; // Renamed from EcoScreen
 import DiagnosisScreen from "./pages/DiagnosisScreen.jsx";
+import VaultArchives from "./pages/VaultArchives";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route index={true} element={<HomeScreen />} />
       <Route path="/dashboard" element={<HomeScreen />} />
-
+      <Route path="/vault-archives" element={<VaultArchives />} />;
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/register" element={<RegisterScreen />} />
-
       {/* Updated EcoNova+ Paths */}
       <Route path="/green-shopping" element={<GreenShoppingScreen />} />
       <Route path="/diagnosis" element={<DiagnosisScreen />} />
-
       {/* Protected Routes */}
       <Route path="" element={<PrivateRoute />}>
         <Route path="/lifecycle" element={<LifecycleScreen />} />
       </Route>
-
       {/* <Route path="/green-shop" element={<EcoScreen />} />
       <Route path="/repair-ai" element={<RepairAssistant />} /> */}
     </Route>,

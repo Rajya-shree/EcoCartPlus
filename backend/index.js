@@ -3,7 +3,6 @@
 //const repairAssistantRoutes = require("./routes/repairAssistantRoutes");
 const videoRecommendationRoutes = require("./routes/videoRecommendationRoutes");
 
-
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
@@ -12,6 +11,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
+const conversationRoutes = require("./routes/ConversationRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const PORT = process.env.PORT || 5000;
@@ -78,6 +78,8 @@ app.use("/api/ifixit", require("./routes/ifixitRoutes")); // iFixit API Proxy
 // Green Shopping & Eco-Products
 app.use("/api/green-shopping", require("./routes/greenShoppingRoutes"));
 
+app.use("/api/conversations", conversationRoutes);
+
 // New Features (Gemini Powered)
 // app.use(
 //   "/api/video-recommendations",
@@ -91,8 +93,6 @@ app.use("/api/shop-locator", require("./routes/locatorRoutes"));
 
 // app.use("/api/repair-assistant", repairAssistantRoutes);
 // app.use("/api/diagnosis", require("./routes/diagnosisRoutes"));
-
-
 
 // Root Endpoint
 // app.get("/", (req, res) => {

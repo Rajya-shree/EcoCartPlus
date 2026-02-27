@@ -1,27 +1,35 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
-  Send,
   User,
   Bot,
   ShieldAlert,
   Trash2,
-  Zap,
-  Info,
   MapPin,
   History,
   Star,
   MessageSquare,
+  Save,
+  Plus,
+  Share2,
+  Terminal,
   Sparkles,
   RefreshCw,
   ChevronRight,
   ShieldCheck,
-  Terminal,
-  Plus,
+  ChevronDown,
 } from "lucide-react";
-import { DIAGNOSIS_URL, VIDEO_RECOMMENDATIONS_URL } from "../utils/constants";
+// DELETE the two separate import blocks and use this one:
+import {
+  DIAGNOSIS_URL,
+  VIDEO_RECOMMENDATIONS_URL,
+  BASE_URL,
+} from "../utils/constants";
+import axios from "axios";
 import VideoHelpCard from "../components/VideoHelpCard";
 import ShopMap from "../components/ShopMap";
 import { Grid, Typography, Box } from "@mui/material";
+import { toast } from "react-toastify";
+import { useSearchParams } from "react-router-dom";
 import "./DiagnosisScreen.css";
 
 const DiagnosisScreen = () => {
@@ -34,18 +42,264 @@ const DiagnosisScreen = () => {
         hour: "2-digit",
         minute: "2-digit",
       }),
+      isStarred: false,
     },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(true);
-  const scrollRef = useRef(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
+  const [sessionTitle, setSessionTitle] = useState("");
+  const [showModal, setShowModal] = useState(false); // 🟢 Controls the modal visibility
+  const [isDirty, setIsDirty] = useState(false);
 
-  // --- 🟢 RESTORED: resetChat Function ---
+  const chatCanvasRef = useRef(null);
+  const lastUserMsgRef = useRef(null);
+
+  // Inside DiagnosisScreen component
+  const [searchParams] = useSearchParams();
+  const conversationIdFromUrl = searchParams.get("id");
+
+  useEffect(() => {
+    const loadVaultedSession = async () => {
+      if (conversationIdFromUrl) {
+        try {
+          const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+          const config = {
+            headers: { Authorization: `Bearer ${userInfo.token}` },
+          };
+
+          // We'll add this specific GET route to your backend next
+          const { data } = await axios.get(
+            // `http://localhost:5000/api/conversations/vault/${conversationIdFromUrl}`,
+            `${BASE_URL}/conversations/vault/${conversationIdFromUrl}`,
+            config,
+          );
+
+          setMessages(data.messages);
+          setConversationId(data._id);
+          setIsSaved(true);
+        } catch (err) {
+          toast.error("Failed to load vaulted session");
+        }
+      }
+    };
+    loadVaultedSession();
+  }, [conversationIdFromUrl]);
+
+  // 🟢 FEATURE: Toggle Star on a message
+  const toggleStar = (index) => {
+    const updatedMessages = [...messages];
+    updatedMessages[index].isStarred = !updatedMessages[index].isStarred;
+    setMessages(updatedMessages);
+    setIsSaved(false);
+    setIsDirty(true);
+    // If it's already vaulted, you would typically make an API call here to update the star status in the DB
+  };
+
+  // const vaultNode = async () => {
+  //   try {
+  //     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  //     if (!userInfo) return toast.error("Please login to vault this session");
+
+  //     const config = {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${userInfo.token}`,
+  //       },
+  //     };
+
+  //     const { data } = await axios.post(
+  //       "/api/conversations/vault",
+  //       {
+  //         conversationId, // null if new, has ID if updating
+  //         messages,
+  //         title:
+  //           messages.find((m) => m.role === "user")?.content.slice(0, 30) ||
+  //           "Hardware Diagnostic",
+  //       },
+  //       config,
+  //     );
+
+  //     setConversationId(data._id); // Store the ID returned by MongoDB
+  //     setIsSaved(true);
+  //     toast.success("Session synchronized to Vault");
+  //   } catch (err) {
+  //     toast.error("Vault synchronization failed");
+  //   }
+  // };
+  // 🟢 FEATURE: Vault Node (Backend Integration)
+  // 🟢 FEATURE: Vault Node (Backend Integration)
+  const vaultNode = async (customTitle) => {
+    try {
+      // 1. Get the string from storage FIRST
+      const userInfoString = localStorage.getItem("userInfo");
+
+      if (!userInfoString) {
+        return toast.error("Please login to vault this session");
+      }
+
+      // 2. Parse it into an object SECOND
+      const userInfo = JSON.parse(userInfoString);
+      const token = userInfo?.token;
+
+      // 3. Now you can safely use 'token' and 'userInfo'
+      console.log("Token being sent:", token);
+
+      if (!token) {
+        return toast.error("Authentication failed. Please login again.");
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      // Logical naming: Use customTitle from modal,
+      // fallback to first user message, or default "Hardware Diagnostic"
+      const finalTitle =
+        customTitle ||
+        messages.find((m) => m.role === "user")?.content.slice(0, 30) ||
+        "Hardware Diagnostic";
+
+      // // 🟢 Ensure you are ONLY picking the data strings, not any UI elements
+      // videoGrounding = vData.videos.slice(0, 4).map((v) => ({
+      //   web: {
+      //     url: v.url,
+      //     title: v.title,
+      //     thumbnail: v.thumbnail,
+      //   },
+      // }));
+
+      // const cleanMessages = messages.map((msg) => ({
+      //   role: msg.role,
+      //   content: msg.content,
+      //   timestamp: msg.timestamp,
+      //   isStarred: !!msg.isStarred,
+      //   // 🟢 Only send grounding if it's plain data
+      //   grounding: msg.grounding
+      //     ? JSON.parse(JSON.stringify(msg.grounding))
+      //     : [],
+      // }));
+      const cleanMessages = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        isStarred: !!msg.isStarred,
+        // grounding: msg.grounding
+        //   ? JSON.parse(JSON.stringify(msg.grounding))
+        //   : [],
+        grounding: msg.grounding
+          ? JSON.parse(JSON.stringify(msg.grounding))
+          : [],
+      }));
+
+      const { data } = await axios.post(
+        // "/api/conversations/vault",
+        `${BASE_URL}/conversations/vault`,
+        {
+          conversationId,
+          messages: cleanMessages,
+          title:
+            // messages.find((m) => m.role === "user")?.content.slice(0, 30) ||
+            // "Hardware Diagnostic",
+            finalTitle,
+        },
+        config,
+      );
+
+      setConversationId(data._id);
+      setIsSaved(true);
+      // toast.success("Session synchronized to Vault");4
+      toast.success(`Node "${finalTitle}" Synchronized`);
+    } catch (err) {
+      console.error("Full Axios Error Object:", err);
+      if (err.response) {
+        console.error("Backend Data:", err.response.data);
+        toast.error(err.response.data.message || "Server Error");
+      } else {
+        toast.error("Network error: Server might be down");
+      }
+    }
+  };
+  // const vaultNode = async () => {
+  //   try {
+  //     const userInfo = JSON.parse(userInfoString);
+  //     const token = userInfo.token;
+
+  //     const userInfoString = localStorage.getItem("userInfo");
+  //     console.log("Token being sent:", userInfo?.token);
+  //     if (!userInfoString)
+  //       return toast.error("Please login to vault this session");
+
+  //     const config = {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     };
+
+  //     const { data } = await axios.post(
+  //       "/api/conversations/vault",
+  //       {
+  //         conversationId,
+  //         messages,
+  //         title:
+  //           messages.find((m) => m.role === "user")?.content.slice(0, 30) ||
+  //           "Hardware Diagnostic",
+  //       },
+  //       config,
+  //     );
+
+  //     setConversationId(data._id);
+  //     setIsSaved(true);
+  //     toast.success("Session synchronized to Vault");
+  //   } catch (err) {
+  //     // 🟢 Better logging to find the root cause
+  //     console.error("Full Axios Error Object:", err);
+  //     if (err.response) {
+  //       console.error("Backend Data:", err.response.data);
+  //       toast.error(err.response.data.message || "Server Error");
+  //     } else {
+  //       console.error("Request Error:", err.message);
+  //       toast.error("Network error: Server might be down");
+  //     }
+  //   }
+  // };
+
+  // 🟢 FEATURE: Vault Node (Save entire session)
+  // const vaultNode = async () => {
+  //   try {
+  //     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  //     if (!userInfo) return toast.error("Please login to vault this session");
+
+  //     // Logic to save to your backend (adjust URL to your specific save endpoint)
+  //     // await axios.post('/api/vault', { title: messages[1]?.content.slice(0,30) || "New Scan", messages }, config);
+
+  //     setIsSaved(true);
+  //     toast.success("Session synchronized to Vault");
+  //   } catch (err) {
+  //     toast.error("Vault synchronization failed");
+  //   }
+  // };
+
+  // 🟢 FEATURE: Filter logic for showing only starred messages
+  const displayedMessages = useMemo(() => {
+    if (!showStarredOnly) return messages;
+    // Always show the first system message + any starred ones
+    return messages.filter((m, i) => i === 0 || m.isStarred);
+  }, [messages, showStarredOnly]);
+
   const resetChat = () => {
     setMessages([
       {
+        id: Date.now(),
         role: "model",
         content:
           "# Technical Diagnostic Node\nEcoNova Intelligence is active. Describe the hardware failure symptoms.",
@@ -53,66 +307,221 @@ const DiagnosisScreen = () => {
           hour: "2-digit",
           minute: "2-digit",
         }),
+        isStarred: false,
       },
     ]);
+    setIsSaved(false);
+    setShowStarredOnly(false);
+    setConversationId(null);
   };
 
-  // --- 🟢 RESTORED: renderGrounding Function ---
+  const handleScroll = () => {
+    if (!chatCanvasRef.current) return console.log("This is returned");
+    const { scrollTop, scrollHeight, clientHeight } = chatCanvasRef.current;
+    console.log("ERTYUISNJ WEIRD hi" + scrollHeight - scrollTop - clientHeight);
+    const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+    setShowScrollButton(isScrolledUp);
+
+    // if (scrollHeight - scrollTop - clientHeight > 150) {
+    //   setShowScrollButton(true);
+    // } else {
+    //   setShowScrollButton(false);
+    // }
+  };
+
+  const scrollToBottom = () => {
+    if (chatCanvasRef.current) {
+      chatCanvasRef.current.scrollTo({
+        top: chatCanvasRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // 🟢 SMART SCROLL LOGIC
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (loading) {
+      scrollToBottom();
+    } else if (lastMsg?.role === "model" && messages.length > 1) {
+      // Scroll to the user's exact last message so they can read the bot's reply top-down
+      if (lastUserMsgRef.current) {
+        lastUserMsgRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      } else {
+        scrollToBottom();
+      }
+    }
+  }, [messages, loading]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      role: "user",
+      content: input,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      isStarred: false,
+    };
+
+    setInput("");
+    setMessages((prev) => [...prev, userMessage]);
+    setLoading(true);
+    setIsSaved(false);
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      const token = userInfo?.token;
+      const res = await fetch(DIAGNOSIS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ message: userMessage.content, location }),
+      });
+
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          role: "model",
+          content: data.advice || "Trace failed.",
+          grounding: data.grounding || [],
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          isStarred: false,
+        },
+      ]);
+    } catch (err) {
+      toast.error("Connection failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // const renderGrounding = (grounding) => {
+  //   if (!grounding || grounding.length === 0) return null;
+  //   const webLinks = grounding.filter((g) => g.web);
+  //   const mapLinks = grounding.filter((g) => g.maps);
+
+  //   return (
+  //     <div className="grounding-section">
+  //       {mapLinks.length > 0 && (
+  //         <Box sx={{ mb: 3 }}>
+  //           <div className="grounding-header">
+  //             <MapPin size={14} className="text-red" />{" "}
+  //             <span>Nearby Repair Specialists</span>
+  //           </div>
+  //           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+  //             {mapLinks.map((g, idx) => (
+  //               <ShopMap key={idx} shop={g.maps} />
+  //             ))}
+  //           </Box>
+  //         </Box>
+  //       )}
+  //       {webLinks.length > 0 && (
+  //         <Box>
+  //           <div className="grounding-header">
+  //             <Sparkles size={14} className="text-emerald" />{" "}
+  //             <span>Curated Educational Resources</span>
+  //           </div>
+  //           <Grid container spacing={2}>
+  //             {webLinks.map((g, idx) => (
+  //               <Grid item xs={12} sm={6} key={idx}>
+  //                 <VideoHelpCard video={g.web} />
+  //               </Grid>
+  //             ))}
+  //           </Grid>
+  //         </Box>
+  //       )}
+  //     </div>
+  //   );
+  // };
+
   const renderGrounding = (grounding) => {
     if (!grounding || grounding.length === 0) return null;
+
     const webLinks = grounding.filter((g) => g.web);
     const mapLinks = grounding.filter((g) => g.maps);
 
     return (
-      <Box className="grounding-area" sx={{ mt: 3, width: "100%" }}>
+      <div className="intelligence-grounding-container">
+        {/* 🟢 MAPS SECTION: Local Specialists */}
         {mapLinks.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant="overline"
-              sx={{
-                fontWeight: "bold",
-                color: "text.secondary",
-                mb: 1,
-                display: "block",
-              }}
-            >
-              <MapPin size={12} style={{ color: "#dc2626" }} /> Nearby Repair
-              Specialists
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          <div className="grounding-block">
+            <div className="grounding-header-main">
+              <MapPin size={18} className="text-rose" />
+              <span>Nearby Restoration Specialists</span>
+            </div>
+            <div className="shop-cards-stack">
               {mapLinks.map((g, idx) => (
-                <ShopMap key={idx} shop={g.maps} />
+                <div key={idx} className="shop-info-card">
+                  <div className="shop-details">
+                    <h4>{g.maps.title}</h4>
+                    <p>{g.maps.address || "Verified Repair Center"}</p>
+                  </div>
+                  <button
+                    className="directions-btn"
+                    onClick={() =>
+                      window.open(
+                        g.maps.url ||
+                          `https://www.google.com/maps/search/${encodeURIComponent(g.maps.title)}`,
+                      )
+                    }
+                  >
+                    DIRECTIONS
+                  </button>
+                </div>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
+
+        {/* 🟢 YOUTUBE SECTION: Visual Guides */}
         {webLinks.length > 0 && (
-          <Box>
-            <Typography
-              variant="overline"
-              sx={{
-                fontWeight: "bold",
-                color: "text.secondary",
-                mb: 1,
-                display: "block",
-              }}
-            >
-              Curated Educational Resources
-            </Typography>
-            <Grid container spacing={2}>
+          <div className="grounding-block">
+            <div className="grounding-header-main">
+              <Sparkles size={18} className="text-emerald" />
+              <span>Technical Visual Guides</span>
+            </div>
+            <div className="video-grid-minimal">
               {webLinks.map((g, idx) => (
-                <Grid item xs={12} sm={6} key={idx}>
-                  <VideoHelpCard video={g.web} />
-                </Grid>
+                <a
+                  key={idx}
+                  href={g.web.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="video-item-card"
+                >
+                  <div className="video-thumb-wrapper">
+                    <img src={g.web.thumbnail} alt="Tutorial" />
+                    <div className="play-hint">
+                      <Plus size={20} />
+                    </div>
+                  </div>
+                  <div className="video-meta">
+                    <h5>{g.web.title}</h5>
+                  </div>
+                </a>
               ))}
-            </Grid>
-          </Box>
+            </div>
+          </div>
         )}
-      </Box>
+      </div>
     );
   };
-
-  // --- UI: Typography System ---
   const renderInlineMarkdown = (text, isUser) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
@@ -120,10 +529,7 @@ const DiagnosisScreen = () => {
         return (
           <strong
             key={i}
-            style={{
-              fontWeight: 900,
-              textDecoration: isUser ? "underline" : "none",
-            }}
+            className={`markdown-bold ${isUser ? "user-bold" : ""}`}
           >
             {part.slice(2, -2)}
           </strong>
@@ -136,7 +542,9 @@ const DiagnosisScreen = () => {
   const renderFormattedContent = (content, isUser) => {
     if (isUser)
       return (
-        <p className="user-text-base">{renderInlineMarkdown(content, true)}</p>
+        <p className="pro-p text-white">
+          {renderInlineMarkdown(content, true)}
+        </p>
       );
 
     return content.split("\n").map((line, i) => {
@@ -149,7 +557,7 @@ const DiagnosisScreen = () => {
       if (line.startsWith("## "))
         return (
           <h2 key={i} className="pro-h2">
-            <ChevronRight size={18} />{" "}
+            <ChevronRight size={18} className="text-emerald" />{" "}
             {renderInlineMarkdown(line.replace("## ", ""), false)}
           </h2>
         );
@@ -159,7 +567,20 @@ const DiagnosisScreen = () => {
             {renderInlineMarkdown(line.substring(2), false)}
           </li>
         );
-      if (!line.trim()) return <div key={i} style={{ height: "1rem" }} />;
+
+      if (line.match(/^\d+\. /)) {
+        const [num, ...rest] = line.split(". ");
+        return (
+          <div key={i} className="pro-numbered-list">
+            <span className="pro-number-badge">{num}</span>
+            <p className="pro-p">
+              {renderInlineMarkdown(rest.join(". "), false)}
+            </p>
+          </div>
+        );
+      }
+
+      if (!line.trim()) return <div key={i} className="spacer" />;
       return (
         <p key={i} className="pro-p">
           {renderInlineMarkdown(line, false)}
@@ -168,90 +589,91 @@ const DiagnosisScreen = () => {
     });
   };
 
-  // --- Logic: Backend Communication ---
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  // const handleSend = async (e) => {
+  //   e.preventDefault();
+  //   if (!input.trim() || loading) return;
 
-    const token = localStorage.getItem("userInfo")
-      ? JSON.parse(localStorage.getItem("userInfo")).token
-      : null;
-    const userMessage = input;
-    const timestamp = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  //   const token = localStorage.getItem("userInfo")
+  //     ? JSON.parse(localStorage.getItem("userInfo")).token
+  //     : null;
+  //   const userMessage = input;
+  //   const timestamp = new Date().toLocaleTimeString([], {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
 
-    setInput("");
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: userMessage, timestamp },
-    ]);
-    setLoading(true);
+  //   setInput("");
+  //   setMessages((prev) => [
+  //     ...prev,
+  //     { role: "user", content: userMessage, timestamp },
+  //   ]);
+  //   setLoading(true);
+  //   setIsSaved(false);
 
-    try {
-      const res = await fetch(DIAGNOSIS_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ message: userMessage, location }),
-      });
+  //   try {
+  //     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  //     const token = userInfo?.token;
+  //     const res = await fetch(DIAGNOSIS_URL, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         ...(token && { Authorization: `Bearer ${token}` }),
+  //       },
+  //       body: JSON.stringify({ message: userMessage, location }),
+  //     });
 
-      const data = await res.json();
-      let videoGrounding = [];
-      const aiGaveInstructions =
-        data.advice?.toLowerCase().includes("step") ||
-        data.advice?.toLowerCase().includes("tools");
+  //     const data = await res.json();
+  //     let videoGrounding = [];
+  //     const aiGaveInstructions =
+  //       data.advice?.toLowerCase().includes("step") ||
+  //       data.advice?.toLowerCase().includes("tools");
 
-      if (userMessage.length > 10 && aiGaveInstructions) {
-        try {
-          const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              diagnosis: data.advice,
-              deviceName: userMessage,
-            }),
-          });
-          const vData = await vRes.json();
-          if (vData.videos?.length > 0) {
-            videoGrounding = vData.videos.slice(0, 4).map((v) => ({
-              web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
-            }));
-          }
-        } catch (vErr) {
-          console.warn("Video failed.");
-        }
-      }
+  //     if (userMessage.length > 10 && aiGaveInstructions) {
+  //       try {
+  //         const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
+  //           method: "POST",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             ...(token && { Authorization: `Bearer ${token}` }),
+  //           },
+  //           body: JSON.stringify({
+  //             diagnosis: data.advice,
+  //             deviceName: userMessage,
+  //           }),
+  //         });
+  //         const vData = await vRes.json();
+  //         if (vData.videos?.length > 0) {
+  //           videoGrounding = vData.videos.slice(0, 4).map((v) => ({
+  //             web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
+  //           }));
+  //         }
+  //       } catch (vErr) {
+  //         console.warn("Video failed.");
+  //       }
+  //     }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "model",
-          content: data.advice || "Trace failed.",
-          grounding: videoGrounding,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (scrollRef.current)
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages, loading]);
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: Date.now() + 1,
+  //         role: "model",
+  //         content: data.advice || "Trace failed.",
+  //         grounding: videoGrounding,
+  //         timestamp: new Date().toLocaleTimeString([], {
+  //           hour: "2-digit",
+  //           minute: "2-digit",
+  //         }),
+  //         isStarred: false,
+  //         grounding: [],
+  //       },
+  //     ]);
+  //   } catch (err) {
+  //     // console.error(err);
+  //     toast.error("Connection failed");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -263,97 +685,273 @@ const DiagnosisScreen = () => {
           });
           setLocationLoading(false);
         },
-        () => {
-          setLocationLoading(false);
-        },
+        () => setLocationLoading(false),
       );
     } else {
       setLocationLoading(false);
     }
   }, []);
 
-  return (
-    <div className="diagnosis-viewport">
-      <header className="diagnosis-hub-header">
-        <div className="header-text">
-          <h2 className="hub-title">
-            AI Diagnostic Assistant{" "}
-            <span className="live-status-pill">Active</span>
-          </h2>
-          {locationLoading && (
-            <p className="geo-wait">Awaiting Geolocation...</p>
-          )}
-        </div>
-        <button className="reset-vault-btn" onClick={resetChat}>
-          <Trash2 size={20} />
-        </button>
-      </header>
+  // 🟢 Locate the exact index of the last user message
+  const lastUserMsgIndex = messages.map((m) => m.role).lastIndexOf("user");
 
-      <div className="chat-canvas-wrapper" ref={scrollRef}>
-        <div className="message-flow-container">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`msg-row ${msg.role === "user" ? "user" : "model"}`}
+  return (
+    <div className="pro-diagnosis-screen">
+      {/* Top Header */}
+      <div className="pro-sticky-header">
+        <div className="header-inner">
+          <div className="header-left">
+            <button className="icon-btn" title="Toggle Archives">
+              <History size={20} />
+            </button>
+            <div className="divider-v"></div>
+            <h1 className="header-title">Active Investigation</h1>
+          </div>
+
+          <div className="header-right">
+            {/* 🟢 Star Filter Button */}
+            {/* <button className="icon-btn" title="Highlight Stars">
+              <Star size={20} />
+            </button> */}
+            <button
+              className={`icon-btn ${showStarredOnly ? "active-star-filter" : ""}`}
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+              title="Show Starred List"
             >
-              <div className="avatar-frame">
-                {msg.role === "user" ? <User size={18} /> : <Bot size={18} />}
-              </div>
-              <div className="bubble-context">
-                <div
-                  className={`pro-bubble ${msg.isSafetyWarning ? "safety" : ""}`}
-                >
-                  {msg.isSafetyWarning && (
-                    <div className="safety-alert-tag">
-                      <ShieldAlert size={14} /> Critical Protocol
+              <Star size={20} fill={showStarredOnly ? "#f59e0b" : "none"} />
+            </button>
+
+            {/* <button className="icon-btn" title="Filter">
+              <MessageSquare size={20} />
+            </button> */}
+
+            {/* <button className="vault-btn">
+              <Save size={16} /> <span className="hide-mobile">Vault Node</span>
+            </button> */}
+            {/* 🟢 Vault Node Button */}
+            {/* <button
+              className={`vault-btn ${isSaved ? "saved" : ""}`}
+              // onClick={vaultNode}
+              onClick={() => setShowModal(true)}
+            >
+              {isSaved ? <ShieldCheck size={16} /> : <Save size={16} />}
+              <span className="hide-mobile">
+                {isSaved ? "Synchronized" : "Vault Node"}
+              </span>
+            </button> */}
+            <button
+              className={`vault-btn ${isSaved ? "saved" : ""} ${isDirty ? "needs-update" : ""}`}
+              onClick={() =>
+                conversationId ? vaultNode(sessionTitle) : setShowModal(true)
+              }
+            >
+              {isSaved ? <ShieldCheck size={16} /> : <Save size={16} />}
+              <span className="hide-mobile">
+                {isSaved
+                  ? "Synchronized"
+                  : conversationId
+                    ? "Update Vault"
+                    : "Vault Node"}
+              </span>
+            </button>
+
+            <button
+              className="icon-btn"
+              onClick={resetChat}
+              title="New Session"
+            >
+              <Plus size={20} />
+            </button>
+
+            {/* <button
+              className="icon-btn bg-emerald-light"
+              onClick={resetChat}
+              title="New Session"
+            >
+              <Plus size={20} className="text-emerald" />
+            </button> */}
+            {/* <button
+              className={`icon-btn ${showStarredOnly ? "active-star-filter" : ""}`}
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+            >
+              <Star size={20} fill={showStarredOnly ? "#f59e0b" : "none"} />
+            </button> */}
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Canvas */}
+      <div className="chat-canvas" ref={chatCanvasRef} onScroll={handleScroll}>
+        <div className="chat-limit-container">
+          {/* {messages.map((msg, i) => {
+            const isLastUserMsg = i === lastUserMsgIndex; */}
+          {displayedMessages.map((msg, i) => {
+            const originalIndex = messages.indexOf(msg);
+            const isLastUserMsg = originalIndex === lastUserMsgIndex;
+
+            return (
+              <div
+                key={msg.id || i}
+                className={`msg-row ${msg.role === "user" ? "user-row" : "bot-row"}`}
+                ref={
+                  isLastUserMsg ? lastUserMsgRef : null
+                } /* 🟢 Ref Attached! */
+              >
+                <div className="msg-content-wrapper">
+                  {/* Avatar */}
+                  <div
+                    className={`avatar-container ${msg.role === "user" ? "user-avatar" : "bot-avatar"}`}
+                  >
+                    {msg.role === "user" ? (
+                      <User size={24} />
+                    ) : (
+                      <Bot size={24} />
+                    )}
+                  </div>
+
+                  {/* Bubble & Grounding */}
+                  <div className="bubble-and-actions">
+                    <div
+                      className={`msg-bubble ${msg.role === "user" ? "user-bubble" : "bot-bubble"}`}
+                    >
+                      {renderFormattedContent(msg.content, msg.role === "user")}
+                      {msg.role === "model" && renderGrounding(msg.grounding)}
                     </div>
-                  )}
-                  <div className="markdown-typography">
-                    {renderFormattedContent(msg.content, msg.role === "user")}
+
+                    {/* Action Bar beneath message */}
+                    <div className="msg-actions">
+                      {/* <button className="action-btn"> */}
+                      <button
+                        className={`action-btn ${msg.isStarred ? "text-amber" : ""}`}
+                        // onClick={() => toggleStar(messages.indexOf(msg))}
+                        onClick={() => toggleStar(originalIndex)}
+                      >
+                        {/* <Star size={14} /> ADD TO VAULT */}
+                        <Star
+                          size={14}
+                          fill={msg.isStarred ? "currentColor" : "none"}
+                        />
+                        {msg.isStarred ? "STARRED" : "STAR"}
+                      </button>
+                      <button className="action-btn">
+                        <Share2 size={14} /> EXPORT
+                      </button>
+                      <span className="msg-timestamp">{msg.timestamp}</span>
+                    </div>
                   </div>
                 </div>
-                {msg.role === "model" && renderGrounding(msg.grounding)}
+              </div>
+            );
+          })}
+
+          {loading && (
+            <div className="msg-row bot-row">
+              <div className="msg-content-wrapper">
+                <div className="avatar-container bot-avatar">
+                  <Bot size={24} className="animate-bounce text-emerald" />
+                </div>
+                <div className="bubble-and-actions">
+                  <div className="msg-bubble bot-bubble loading-bubble">
+                    <div className="shimmer-effect"></div>
+                    <div className="skeleton-line w-75"></div>
+                    <div className="skeleton-line w-50"></div>
+                    <div className="skeleton-line w-90"></div>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
-          {loading && (
-            <div className="loading-state-hub">EcoNova is analyzing...</div>
           )}
         </div>
       </div>
 
-      <div className="command-dock-footer">
-        <div className="dock-inner-limit">
-          <form onSubmit={handleSend} className="dock-form">
-            <div className="terminal-prefix">
-              <Terminal size={24} />
+      {/* Floating Command Center */}
+      <div className="floating-command-center">
+        <div className="input-container relative">
+          {/* 🟢 Scroll to Bottom Button */}
+          {showScrollButton && (
+            <button
+              className="scroll-to-bottom-btn"
+              onClick={scrollToBottom}
+              type="button"
+            >
+              <ChevronDown size={24} />
+            </button>
+          )}
+
+          <form onSubmit={handleSend} className="input-form">
+            <div className="terminal-icon">
+              <Terminal size={28} />
             </div>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Describe fault or hardware SKU..."
-              className="dock-input"
+              placeholder="Describe the fault or enter the hardware SKU..."
+              className="pro-input-field"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              className="initiate-trace-btn"
+              className="initiate-btn"
             >
               {loading ? (
-                <RefreshCw className="animate-spin" />
+                <RefreshCw size={24} className="animate-spin" />
               ) : (
-                <Sparkles size={20} />
+                <Sparkles size={24} />
               )}
-              <span>Initiate Trace</span>
+              <span className="hide-mobile">Initiate Trace</span>
             </button>
           </form>
-          <div className="engine-status-footer">
-            Predictive Diagnostic Engine v4.2
-          </div>
+          {/* <div className="engine-version">
+            Predictive Hardware Diagnostic Engine v4.2
+          </div> */}
         </div>
       </div>
+      {/* 🟢 VAULT MODAL - Add this before the final closing </div> */}
+      {showModal && (
+        <div className="vault-modal-overlay">
+          <div className="vault-modal-content animate-in">
+            <div className="modal-icon-header">
+              <Save size={32} className="text-emerald" />
+            </div>
+            <h2>Vault Investigation</h2>
+            <p>
+              Confirm the designation for this technical node before committing
+              to the dashboard.
+            </p>
+
+            <div className="modal-input-group">
+              <label>SESSION TITLE</label>
+              <input
+                type="text"
+                placeholder="Enter node identifier..."
+                value={sessionTitle}
+                onChange={(e) => setSessionTitle(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => setShowModal(false)}
+              >
+                CANCEL
+              </button>
+              <button
+                className="confirm-btn"
+                onClick={() => {
+                  vaultNode(sessionTitle); // Passes the edited title to your vaultNode function
+                  setShowModal(false);
+                }}
+              >
+                CONFIRM
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

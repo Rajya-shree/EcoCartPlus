@@ -8,6 +8,7 @@ import { LIFECYCLE_URL } from "./utils/constants";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate, useLocation } from "react-router-dom";
 
+
 function App() {
   const { userInfo } = useAuth();
   const [devices, setDevices] = useState([]);
@@ -83,19 +84,28 @@ function App() {
     //   </div>
     // </div>
 
+    // <div
+    //   style={{
+    //     display: "flex",
+    //     width: "100vw",
+    //     height: "100vh",
+    //     overflow: "hidden",
+    //   }}
+    // >
     <div
+      className="App"
       style={{
         display: "flex",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
+        backgroundColor: "rgb(241, 245, 249)",
+        minHeight: "100vh",
+        width: "100%",
       }}
     >
       {/* Sidebar only shows if logged in */}
       {userInfo && <Sidebar />}
 
       <div
-      className="main-content-area"
+        className="main-content-area"
         style={{
           // flex: 1,
           flexGrow: 1,
@@ -108,7 +118,7 @@ function App() {
         }}
       >
         <ToastContainer position="top-right" autoClose={3000} />
-        <main style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
+        <main style={{ padding: "10px", maxWidth: "1200px", margin: "0 auto" }}>
           <Outlet context={{ userInfo, userInfo, fetchData }} />
         </main>
       </div>

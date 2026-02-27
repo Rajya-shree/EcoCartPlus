@@ -4,8 +4,26 @@ body {
   background-color: #f9f9f9;
 }
 
+.chat-canvas {
+    border: 5px solid red !important;
+}
+
 .main-content {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 2rem;
+  
+  flex-grow: 1; 
+  width: 100%; 
+  max-width: 100%; 
+  height: 100vh;
+  overflow: hidden;
+  padding: 0 !important; /* 🟢 REMOVED the 2rem padding that caused the gaps */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
 }

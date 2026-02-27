@@ -1,173 +1,247 @@
-/**/
-/* Ensure the main container grows to fill the area beside the sidebar */
-.pro-diagnosis-screen {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  
-  transition: margin-left 0.3s ease;
-}
-
-/* Fix the Command Center to stay within the "space left" */
-/* .floating-command-center {
-  position: fixed;
-  bottom: 0;
-  left: 260px; 
-  right: 0;
-  padding: 2rem;
-  background: linear-gradient(to top, white 80%, transparent);
-  z-index: 40;
-  transition: left 0.3s ease;
-  display: flex;
-  justify-content: center;
-} */
-
-.floating-command-center {
-    position: absolute; /* Changed from fixed to absolute */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 2rem;
-    /* This will now be centered only within the remaining space */
-}
-
-/* Adjust the messages canvas to not be hidden by the footer */
-.chat-canvas {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 200px; /* Space for the floating dock */
-}
-/**/
+/* DiagnosisScreen.css - Professional Responsive UI */
 
 /**/
-.pro-diagnosis-screen {
+/* Container for AI Grounding */
+.intelligence-grounding-container {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  /* Use margin-left to push the entire screen away from the sidebar */
-  /* Adjust these values to match your actual sidebar widths */
-  margin-left: var(--sidebar-width, 280px);
-  transition: margin-left 0.3s ease;
+  gap: 24px;
+  animation: slideUp 0.4s ease-out;
 }
 
-.floating-command-center {
-  position: fixed;
-  bottom: 0;
-  /* This ensures the footer only spans the remaining width */
-  left: var(--sidebar-width, 280px);
-  right: 0;
-  padding: 2rem;
-  background: linear-gradient(to top, white 80%, transparent);
-  z-index: 40;
-  transition: left 0.3s ease;
+.grounding-header-main {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 12px;
 }
 
-.chat-limit-container {
-  width: 100%;
-  max-width: 1000px; /* Limits width for readability within the remaining space */
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* The entire screen occupies 100% of the flex-item width */
-.diagnosis-viewport {
+/* 🟢 Shop Card Styles */
+.shop-cards-stack {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100%; /* Occupies only what the flex container gives it */
+  gap: 10px;
+}
+
+.shop-info-card {
   background: #ffffff;
-}
-
-/* Header stays at the top of the remaining space */
-.diagnosis-hub-header {
-  padding: 2rem 3rem;
-  border-bottom: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 16px 20px;
+  border-radius: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.2s ease;
 }
 
-/* Chat Area - Flexible Height */
-.chat-canvas-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  /* Bottom padding ensures messages aren't hidden by the floating dock */
-  padding-bottom: 200px;
+.shop-info-card:hover {
+  border-color: #f43f5e;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.08);
 }
 
-/* Message Width Limitation for Readability */
-.message-flow-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  width: 100%;
+.shop-details h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1e293b;
 }
 
-/* Floating Command Dock - Anchored to the bottom of the content area */
-.command-dock-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 2rem 3rem 3rem 3rem;
-  background: linear-gradient(to top, white 70%, transparent);
-  pointer-events: none; /* Allows scrolling through the gradient */
+.shop-details p {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
-.dock-inner-limit {
-  max-width: 1000px;
-  margin: 0 auto;
-  pointer-events: auto; /* Re-enables clicks for the input */
+.directions-btn {
+  background: #f1f5f9;
+  color: #f43f5e;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.dock-form {
-  position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-  border-radius: 3rem;
-}
-
-.dock-input {
-  width: 100%;
-  padding: 1.75rem 16rem 1.75rem 5rem;
-  border-radius: 3rem;
-  border: 2px solid #f1f5f9;
-  background: white;
-  font-size: 1.1rem;
-  outline: none;
-}
-
-.initiate-trace-btn {
-  position: absolute;
-  right: 0.75rem;
-  top: 0.75rem;
-  bottom: 0.75rem;
-  background: #0f172a;
+.directions-btn:hover {
+  background: #f43f5e;
   color: white;
-  padding: 0 2.5rem;
-  border-radius: 2.25rem;
+}
+
+/* 🟢 Video Grid Styles */
+.video-grid-minimal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.video-item-card {
+  text-decoration: none;
+  background: #f8fafc;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.video-item-card:hover {
+  transform: translateY(-4px);
+  border-color: #10b981;
+}
+
+.video-thumb-wrapper {
+  position: relative;
+  aspect-ratio: 16/9;
+}
+
+.video-thumb-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.play-hint {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 185, 129, 0.2);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 700;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.video-item-card:hover .play-hint {
+  opacity: 1;
+}
+
+.video-meta {
+  padding: 10px;
+}
+
+.video-meta h5 {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #334155;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 /**/
 
-.pro-diagnosis-screen {
-  min-height: 100vh;
-  background: #f9fafb;
+/**/
+.vault-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
+.vault-modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 40px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.modal-input-group {
+  text-align: left;
+  margin: 25px 0;
+}
+
+.modal-input-group label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.1em;
+}
+
+.modal-input-group input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.confirm-btn {
+  background: #059669;
+  color: white;
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #f1f5f9;
+  color: #64748b;
+  flex: 1;
+  padding: 15px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+/**/
+
+/* 1. Main Layout */
+.pro-diagnosis-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%; /* Takes full height of its container */
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+/* 2. Top Header */
 .pro-sticky-header {
   position: sticky;
   top: 0;
-  z-index: 40;
-  background: white;
-  border-bottom: 1px solid #f1f5f9;
-  padding: 1rem 2rem;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 0.75rem 2rem;
+  /* border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 2rem; */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -175,88 +249,170 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.header-left {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
+
 .divider-v {
   width: 1px;
   height: 1rem;
   background: #e2e8f0;
-}
-.header-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
+  margin: 0 0.25rem;
 }
 
-.sync-badge {
-  background: #f0fdf4;
-  color: #166534;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 900;
+.header-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #1e293b;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+/* Header Buttons */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-btn:hover {
+  color: #059669;
+  background: #ecfdf5;
+  border-color: #d1fae5;
+}
+.bg-emerald-light {
+  background: #ecfdf5;
+  border-color: #d1fae5;
+}
+.text-emerald {
+  color: #059669;
+}
+
+.vault-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 4px 14px 0 rgba(5, 150, 105, 0.2);
+}
+.vault-btn:hover {
+  background: #047857;
 }
 
+/* 3. Chat Canvas */
 .chat-canvas {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 250px; /* Space for command center */
+  padding-bottom: 180px; /* Safe space for the floating dock */
+  scroll-behavior: smooth;
 }
 
 .chat-limit-container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  /* gap: 2.5rem; */
 }
 
 .msg-row {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  animation: slideUp 0.4s ease-out forwards;
+}
+.bot-row {
+  justify-content: flex-start;
 }
 .user-row {
+  justify-content: flex-end;
+}
+
+.msg-content-wrapper {
+  display: flex;
+  gap: 1.25rem;
+  max-width: 85%;
+}
+.user-row .msg-content-wrapper {
   flex-direction: row-reverse;
 }
 
+/* Avatars */
 .avatar-container {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-top: 0.25rem;
 }
 
+.avatar-container svg {
+  width: 18px;
+  height: 18px;
+}
 .bot-avatar {
   background: white;
   border: 1px solid #e2e8f0;
-  color: #10b981;
+  color: #059669;
 }
 .user-avatar {
   background: #059669;
   color: white;
+  border: 1px solid #047857;
+}
+
+/* Bubbles */
+.bubble-and-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.user-row .bubble-and-actions {
+  align-items: flex-end;
+}
+.bot-row .bubble-and-actions {
+  align-items: flex-start;
 }
 
 .msg-bubble {
-  padding: 2.5rem;
-  border-radius: 2.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-
 .bot-bubble {
   background: white;
   border: 1px solid #f1f5f9;
-  border-top-left-radius: 0;
+  border-top-left-radius: 0.25;
 }
 .user-bubble {
   background: #059669;
@@ -264,103 +420,461 @@
   border-top-right-radius: 0;
 }
 
-/* Typography System */
-.pro-h1 {
-  font-size: 1.875rem;
+/* 4. Action Bar (Under Bubble) */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 0.5rem;
+}
+.user-row .msg-actions {
+  flex-direction: row-reverse;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.action-btn:hover {
+  color: #059669;
+}
+.msg-timestamp {
+  font-size: 0.65rem;
+  color: #cbd5e1;
   font-weight: 800;
-  margin-bottom: 1.5rem;
+  letter-spacing: 0.1em;
+}
+
+/* 5. Typography Formatting (More compact) */
+.pro-h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 0.5rem;
 }
 .pro-h2 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  color: #334155;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 .pro-p {
-  line-height: 1.7;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  margin-top: 0;
   color: inherit;
 }
+.bot-bubble .pro-p {
+  color: #334155;
+}
+.user-bubble .pro-p {
+  color: rgba(255, 255, 255, 0.95);
+}
+.spacer {
+  height: 0.25rem;
+}
+.markdown-bold {
+  font-weight: 700;
+  color: #0f172a;
+}
+.user-bold {
+  color: white;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Custom Lists */
 .pro-li {
-  margin-left: 1.5rem;
+  margin-left: 1.25rem;
   position: relative;
   list-style: none;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #334155;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 .pro-li::before {
   content: "";
   position: absolute;
-  left: -1.2rem;
-  top: 0.6rem;
-  width: 6px;
-  height: 6px;
+  left: -1rem;
+  top: 0.55rem;
+  width: 5px;
+  height: 5px;
   background: #10b981;
   border-radius: 50%;
 }
 
-/* Floating Command Center */
+.pro-numbered-list {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.5rem;
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #f1f5f9;
+}
+.pro-number-badge {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #059669;
+  font-size: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Grounding / References */
+.grounding-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+.grounding-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+.text-red {
+  color: #ef4444;
+}
+
+/* 6. Floating Command Center */
 .floating-command-center {
-  position: fixed;
+  position: fixed; /* Keeps it inside the main window, ignoring the sidebar */
   bottom: 0;
-  left: 0;
+  left: 280px;
   right: 0;
-  padding: 2rem;
-  background: linear-gradient(to top, white 80%, transparent);
+  padding: 10px 20px 20px 20px;
+  background: linear-gradient(
+    to top,
+    white 70%,
+    rgba(255, 255, 255, 0.9) 80%,
+    transparent
+  );
+  pointer-events: none; /* Let clicks pass through gradient */
+  z-index: 20;
+  border-radius: 0rem;
 }
 
 .input-container {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
-}
-.input-form {
+  pointer-events: auto; /* Re-enable clicks for the form */
   position: relative;
 }
+
+/* 🟢 THE SCROLL TO BOTTOM BUTTON */
+.scroll-to-bottom-btn {
+  position: absolute;
+  top: -55px; /* Floats above the typing box */
+  /* left: 50%; */
+  left: 50%;
+  /* bottom: 280px; */
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669; /* Eco Green */
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+  transform: translateX(-50%) translateY(-2px);
+  background: #f8fafc;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.input-form {
+  position: relative;
+  box-shadow: 0 20px 10px -10px rgba(0, 0, 0, 0.1);
+  border-radius: 2.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
 .terminal-icon {
   position: absolute;
-  left: 2rem;
+  left: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
   color: #cbd5e1;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 1rem;
 }
 
 .pro-input-field {
   width: 100%;
-  padding: 2rem 20rem 2rem 5rem;
-  border-radius: 3rem;
+  padding: 1.25rem 10rem 1.25rem 4.5rem;
+  border-radius: 2.5rem;
   border: 2px solid #f1f5f9;
-  font-size: 1.25rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: white;
+  font-size: 1.15rem;
   outline: none;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.pro-input-field:focus {
+  border-color: #34d399;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+.pro-input-field::placeholder {
+  color: #cbd5e1;
+  font-weight: 500;
 }
 
 .initiate-btn {
   position: absolute;
-  right: 0.5rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
+  right: 0.75rem;
+  top: 0.75rem;
+  bottom: 0.75rem;
   background: #0f172a;
   color: white;
-  padding: 0 3rem;
+  padding: 0 2rem;
   border-radius: 2.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   text-transform: uppercase;
   font-weight: 900;
-  font-size: 0.75rem;
-  letter-spacing: 0.1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.initiate-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: scale(0.98);
+}
+.initiate-btn:disabled {
+  background: #f1f5f9;
+  color: #cbd5e1;
+  cursor: not-allowed;
 }
 
 .engine-version {
   text-align: center;
   margin-top: 1rem;
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #cbd5e1;
   letter-spacing: 0.3em;
   text-transform: uppercase;
+}
+
+/* 7. Animations & Loaders */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-bubble {
+  width: 300px;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-line {
+  height: 0.75rem;
+  background: #f1f5f9;
+  border-radius: 1rem;
+  margin-bottom: 0.75rem;
+}
+.w-75 {
+  width: 75%;
+}
+.w-50 {
+  width: 50%;
+}
+.w-90 {
+  width: 90%;
+}
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+  transform: skewX(-20deg);
+}
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/* =========================================================
+   🟢 MOBILE RESPONSIVENESS
+   ========================================================= */
+@media (max-width: 768px) {
+  .pro-sticky-header {
+    padding: 1rem;
+  }
+  .header-title {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hide-mobile {
+    display: none;
+  }
+  .vault-btn {
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+  }
+
+  .chat-limit-container {
+    padding: 1rem;
+  }
+  .msg-content-wrapper {
+    max-width: 95%;
+    gap: 0.75rem;
+  }
+  .avatar-container {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+  }
+  .avatar-container svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .msg-bubble {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  /* Target the last paragraph in a bubble to remove its margin */
+  .msg-bubble p:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* Ensure the canvas doesn't allow content to hide behind the fixed footer */
+  .chat-canvas {
+    padding-bottom: 120px; /* Matches the height of your footer area */
+  }
+
+  .pro-h1 {
+    font-size: 1.25rem;
+  }
+  .pro-p {
+    font-size: 0.95rem;
+  }
+
+  .floating-command-center {
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+  }
+  .pro-input-field {
+    padding: 1rem 4rem 1rem 3rem;
+    font-size: 1rem;
+    border-radius: 1.5rem;
+  }
+  .terminal-icon {
+    left: 1rem;
+  }
+  .terminal-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  .initiate-btn {
+    right: 0.5rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    padding: 0 1rem;
+    border-radius: 1rem;
+  }
+}
+
+/* 🟢 Star Filter Active State */
+.active-star-filter {
+  background: #fffbeb !important;
+  border-color: #fcd34d !important;
+  color: #d97706 !important;
+}
+
+/* 🟢 Starred Message Label */
+.text-amber {
+  color: #d97706 !important;
+}
+
+/* 🟢 Vault Sync'd State */
+.vault-btn.saved {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #10b981;
+  box-shadow: none;
+}
+
+/* Fix: remove bubble bottom gap */
+.msg-bubble > *:last-child {
+  margin-bottom: 0 !important;
 }
