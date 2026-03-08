@@ -10,3 +10,4 @@ router.route("/search").post(searchYouTube);
 router.post("/", protect, getVideoRecommendations);
 
 module.exports = router;
+
