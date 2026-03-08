@@ -69,16 +69,15 @@ const diagnoseDevice = asyncHandler(async (req, res) => {
 
   // 1. Call the grounded service we created
   // This function now handles the YouTube and Maps grounding logic
-  const adviceData = await getSmartRepairAdvice(message, location);
+  const adviceData = await getSmartRepairAdvice(message, history, location);
 
   // 2. Return the data in the format the frontend expects
   // Your frontend looks for 'advice' and 'grounding'
   res.status(200).json({
     success: true,
     advice: adviceData.text, // The main AI response
-    grounding: adviceData.grounding || [] // The YouTube/Maps links
+    grounding: adviceData.grounding || [], // The YouTube/Maps links
   });
 });
-
 
 module.exports = { diagnoseDevice };
