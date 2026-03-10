@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 
 const Device = require("../models/Device");
-const MaintenanceTask = require("../models/MaintenanceTaskModel");
+const MaintenanceTask = require("../models/maintenanceTaskModel");
 const DeviceTask = require("../models/deviceTaskModel");
 const EcoProduct = require("../models/ProductModel");
 
