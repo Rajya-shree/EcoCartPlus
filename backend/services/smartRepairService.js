@@ -1,9 +1,162 @@
+// Latest Code
+// const { getRepairAdvice } = require("./groqService");
+// const axios = require("axios");
+// const dotenv = require("dotenv");
+// dotenv.config();
+
+// const getSmartRepairAdvice = async (message, history, location) => {
+//   const groqResponse = await getRepairAdvice(message, history, location);
+//   const aiText = groqResponse.text;
+
+//   const isRepairOrSafety =
+//     aiText.includes("1.") || aiText.toLowerCase().includes("safety");
+//   if (message.trim().length <= 15 && !isRepairOrSafety) {
+//     return { text: aiText, grounding: [] };
+//   }
+
+//   const grounding = [];
+
+//   // --- MAP LOCATOR TRACKING ---
+
+//   // If the frontend didn't send GPS, scream loudly in the terminal!
+//   if (!location || !location.latitude || !location.longitude) {
+//     console.log(
+//       "❌ MAP ERROR: Your React frontend did not send GPS coordinates. The browser is blocking Location!",
+//     );
+//     return { text: aiText, grounding };
+//   }
+
+//   console.log(
+//     `🗺️ GPS Received! Latitude: ${location.latitude}, Longitude: ${location.longitude}`,
+//   );
+
+//   // try {
+//   //   const youtubePromise = axios.get(
+//   //     `https://www.googleapis.com/youtube/v3/search`,
+//   //     {
+//   //       params: {
+//   //         part: "snippet",
+//   //         q: `${message} repair tutorial`,
+//   //         key: process.env.YOUTUBE_API_KEY,
+//   //         maxResults: 3,
+//   //         type: "video",
+//   //       },
+//   //     },
+//   //   );
+
+//   //   const mapsPromise =
+//   //     location && location.latitude && location.longitude
+//   //       ? axios.get(
+//   //           `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
+//   //           {
+//   //             params: {
+//   //               location: `${location.latitude},${location.longitude}`,
+//   //               radius: 5000,
+//   //               keyword: "authorized electronics repair shop",
+//   //               key: process.env.GOOGLE_MAPS_API_KEY,
+//   //             },
+//   //           },
+//   //         )
+//   //       : Promise.resolve(null); // Resolves instantly if no location
+
+//   //   // 🟢 FIXED: Use Promise.allSettled so if YouTube fails, Maps still loads (and vice versa)
+//   //   const results = await Promise.allSettled([youtubePromise, mapsPromise]);
+
+//   //   const youtubeRes = results[0];
+//   //   const mapsRes = results[1];
+
+//   //   // --- Safely Process YouTube ---
+//   //   if (
+//   //     youtubeRes.status === "fulfilled" &&
+//   //     youtubeRes.value &&
+//   //     youtubeRes.value.data.items
+//   //   ) {
+//   //     youtubeRes.value.data.items.forEach((v) => {
+//   //       grounding.push({
+//   //         web: {
+//   //           title: v.snippet.title,
+//   //           url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+//   //           thumbnail:
+//   //             v.snippet.thumbnails?.medium?.url ||
+//   //             v.snippet.thumbnails?.default?.url,
+//   //         },
+//   //       });
+//   //     });
+//   //   } else if (youtubeRes.status === "rejected") {
+//   //     console.log("YouTube Grounding Skipped:", youtubeRes.reason.message);
+//   //   }
+
+//   //   // --- Safely Process Maps ---
+//   //   if (
+//   //     mapsRes.status === "fulfilled" &&
+//   //     mapsRes.value &&
+//   //     mapsRes.value.data.results
+//   //   ) {
+//   //     mapsRes.value.data.results.slice(0, 3).forEach((s) => {
+//   //       grounding.push({
+//   //         maps: {
+//   //           title: s.name,
+//   //           address: s.vicinity,
+//   //           url: `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(s.name)}&query_place_id=${s.place_id}`,
+//   //         },
+//   //       });
+//   //     });
+//   //   } else if (mapsRes.status === "rejected") {
+//   //     console.log("Maps Grounding Skipped:", mapsRes.reason.message);
+//   //   }
+//   // }
+
+//   try {
+//     const mapsRes = await axios.get(
+//       `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
+//       {
+//         params: {
+//           location: `${location.latitude},${location.longitude}`,
+//           radius: 15000, // Search within 5km
+//           keyword:
+//             "authorized electronics repair shop or electronics repair OR computer repair",
+//           key: process.env.GOOGLE_MAPS_API_KEY,
+//         },
+//       },
+//     );
+
+//     if (mapsRes.data && mapsRes.data.results) {
+//       console.log(
+//         `✅ MAP SUCCESS: Google found ${mapsRes.data.results.length} shops!`,
+//       );
+
+//       // Take the top 3 shops and format them for your frontend
+//       mapsRes.data.results.slice(0, 3).forEach((shop) => {
+//         grounding.push({
+//           maps: {
+//             title: shop.name,
+//             address: shop.vicinity || "Authorized Repair Center",
+//             url: `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(shop.name)}&query_place_id=${shop.place_id}`,
+//           },
+//         });
+//       });
+//     } else {
+//       console.log(
+//         "⚠️ MAP WARNING: Google Maps API responded, but found 0 shops nearby.",
+//       );
+//     }
+//   } catch (err) {
+//     console.error("Hybrid Grounding Error:", err.message);
+//   }
+
+//   return { text: aiText, grounding };
+// };
+
+// module.exports = { getSmartRepairAdvice };
+
 const { getRepairAdvice } = require("./groqService");
-const axios = require("axios");
+// 🟢 Import our new native map tool
+const { getNearbyShopsViaGemini } = require("./geminiService");
 const dotenv = require("dotenv");
 dotenv.config();
 
 const getSmartRepairAdvice = async (message, history, location) => {
+  // 1. Get Text from Groq
   const groqResponse = await getRepairAdvice(message, history, location);
   const aiText = groqResponse.text;
 
@@ -15,82 +168,55 @@ const getSmartRepairAdvice = async (message, history, location) => {
 
   const grounding = [];
 
-  try {
-    const youtubePromise = axios.get(
-      `https://www.googleapis.com/youtube/v3/search`,
-      {
-        params: {
-          part: "snippet",
-          q: `${message} repair tutorial`,
-          key: process.env.YOUTUBE_API_KEY,
-          maxResults: 3,
-          type: "video",
-        },
-      },
+  //🟢 THE FIX: Smart Map Trigger
+  // Check if Groq's text mentions needing a pro, OR if the user explicitly asked for a shop
+  const lowerText = aiText.toLowerCase();
+  const lowerMsg = message.toLowerCase();
+
+  const AIRecommendsPro =
+    lowerText.includes("professional") ||
+    lowerText.includes("repair service") ||
+    lowerText.includes("technician") ||
+    lowerText.includes("service center");
+
+  const UserAskedForShop =
+    lowerMsg.includes("where") ||
+    lowerMsg.includes("shop") ||
+    lowerMsg.includes("store") ||
+    lowerMsg.includes("near me");
+
+  if (AIRecommendsPro || UserAskedForShop) {
+    // --- MAP LOCATOR TRACKING ---
+    if (!location || !location.latitude || !location.longitude) {
+      console.log(
+        "❌ MAP ERROR: Your React frontend did not send GPS coordinates. The browser is blocking Location!",
+      );
+      return { text: aiText, grounding };
+    }
+
+    console.log(
+      `🗺️ Complex issue detected. Fetching shops for Lat: ${location.latitude}, Lng: ${location.longitude}`,
     );
 
-    const mapsPromise =
-      location && location.latitude && location.longitude
-        ? axios.get(
-            `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
-            {
-              params: {
-                location: `${location.latitude},${location.longitude}`,
-                radius: 5000,
-                keyword: "authorized electronics repair shop",
-                key: process.env.GOOGLE_MAPS_API_KEY,
-              },
-            },
-          )
-        : Promise.resolve(null); // Resolves instantly if no location
+    // 🟢 The Magic: Use Gemini 2.5 Flash for Maps
+    const mapGrounding = await getNearbyShopsViaGemini(location, message);
 
-    // 🟢 FIXED: Use Promise.allSettled so if YouTube fails, Maps still loads (and vice versa)
-    const results = await Promise.allSettled([youtubePromise, mapsPromise]);
-
-    const youtubeRes = results[0];
-    const mapsRes = results[1];
-
-    // --- Safely Process YouTube ---
-    if (
-      youtubeRes.status === "fulfilled" &&
-      youtubeRes.value &&
-      youtubeRes.value.data.items
-    ) {
-      youtubeRes.value.data.items.forEach((v) => {
-        grounding.push({
-          web: {
-            title: v.snippet.title,
-            url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-            thumbnail:
-              v.snippet.thumbnails?.medium?.url ||
-              v.snippet.thumbnails?.default?.url,
-          },
-        });
-      });
-    } else if (youtubeRes.status === "rejected") {
-      console.log("YouTube Grounding Skipped:", youtubeRes.reason.message);
+    if (mapGrounding.length > 0) {
+      console.log(
+        `✅ MAP SUCCESS: Gemini 2.5 Native Maps found ${mapGrounding.length} shops!`,
+      );
+      grounding.push(...mapGrounding);
+    } else {
+      // If it tried to search but found nothing
+      console.log(
+        "⚠️ MAP WARNING: Gemini Native Maps searched, but found 0 shops nearby.",
+      );
     }
-
-    // --- Safely Process Maps ---
-    if (
-      mapsRes.status === "fulfilled" &&
-      mapsRes.value &&
-      mapsRes.value.data.results
-    ) {
-      mapsRes.value.data.results.slice(0, 3).forEach((s) => {
-        grounding.push({
-          maps: {
-            title: s.name,
-            address: s.vicinity,
-            url: `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(s.name)}&query_place_id=${s.place_id}`,
-          },
-        });
-      });
-    } else if (mapsRes.status === "rejected") {
-      console.log("Maps Grounding Skipped:", mapsRes.reason.message);
-    }
-  } catch (err) {
-    console.error("Hybrid Grounding Error:", err.message);
+  } else {
+    // 🟢 FIXED: If it skipped the map entirely because it was a simple task
+    console.log(
+      "⏭️ MAP SKIPPED: Issue is a simple DIY/cleaning task. No map needed.",
+    );
   }
 
   return { text: aiText, grounding };

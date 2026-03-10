@@ -82,10 +82,25 @@ const DiagnosisScreen = () => {
         } catch (err) {
           toast.error("Failed to load vaulted session");
         }
+      } else {
+        // 🟢 NEW: If no Vault ID, check for a temporary draft!
+        const activeDraft = localStorage.getItem("ecoNova_chat_draft");
+        if (activeDraft) {
+          setMessages(JSON.parse(activeDraft));
+        }
       }
     };
     loadVaultedSession();
   }, [conversationIdFromUrl]);
+
+  // 🟢 NEW: Silently update the draft whenever messages change
+  useEffect(() => {
+    // Only save a draft if this ISN'T already a permanently vaulted session,
+    // and only if they've actually started chatting (length > 1)
+    if (!conversationId && messages.length > 1) {
+      localStorage.setItem("ecoNova_chat_draft", JSON.stringify(messages));
+    }
+  }, [messages, conversationId]);
 
   const toggleStar = (index) => {
     const updatedMessages = [...messages];
@@ -162,6 +177,8 @@ const DiagnosisScreen = () => {
   }, [messages, showStarredOnly]);
 
   const resetChat = () => {
+    // 🟢 NEW: Wipe the temporary memory
+    localStorage.removeItem("ecoNova_chat_draft");
     setMessages([
       {
         id: Date.now(),
@@ -264,13 +281,48 @@ const DiagnosisScreen = () => {
         diagnosisText?.toLowerCase().includes("for your safety") ||
         diagnosisText?.toLowerCase().includes("do not attempt");
 
+      // Initialize grounding with Maps (if the backend sends them)
+      let combinedGrounding = data.grounding || [];
+
+      // 2. 🟢 RESTORED: Fetch Your Gemini Video Recommendations
+      const aiGaveInstructions =
+        diagnosisText?.toLowerCase().includes("1.") ||
+        diagnosisText?.toLowerCase().includes("step");
+
+      if (aiGaveInstructions) {
+        try {
+          const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+              diagnosis: diagnosisText,
+              deviceName: userMessage.content,
+            }),
+          });
+          const vData = await vRes.json();
+          if (vData.videos?.length > 0) {
+            const videoGrounding = vData.videos.slice(0, 4).map((v) => ({
+              web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
+            }));
+            // Add Gemini videos to the map data
+            combinedGrounding = [...combinedGrounding, ...videoGrounding];
+          }
+        } catch (vErr) {
+          console.warn("Gemini Video Service skipped:", vErr);
+        }
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
           role: "model",
           content: diagnosisText || "Trace failed.",
-          grounding: data.grounding || [],
+          //   grounding: data.grounding || [],
+          grounding: combinedGrounding,
           isSafetyWarning: isSafetyWarning, // Sets the flag for rendering UI
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -300,6 +352,19 @@ const DiagnosisScreen = () => {
               <MapPin size={18} className="text-rose" />
               <span>Nearby Restoration Specialists</span>
             </div>
+            {/* 🟢 NEW: This is where your visual map with pointers goes!
+            <div
+              className="map-visual-container"
+              style={{
+                width: "100%",
+                height: "250px",
+                marginBottom: "1rem",
+                borderRadius: "1rem",
+                overflow: "hidden",
+              }}
+            >
+              <ShopMap shops={mapLinks} userLocation={location} />
+            </div> */}
             <div className="shop-cards-stack">
               {mapLinks.map((g, idx) => (
                 <div key={idx} className="shop-info-card">
