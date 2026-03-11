@@ -152,74 +152,158 @@
 const { getRepairAdvice } = require("./groqService");
 // 🟢 Import our new native map tool
 const { getNearbyShopsViaGemini } = require("./geminiService");
+const axios = require("axios");
 const dotenv = require("dotenv");
 dotenv.config();
 
+// const getSmartRepairAdvice = async (message, history, location) => {
+//   // 1. Get Text from Groq
+//   const groqResponse = await getRepairAdvice(message, history, location);
+//   const aiText = groqResponse.text;
+
+//   const isRepairOrSafety =
+//     aiText.includes("1.") || aiText.toLowerCase().includes("safety");
+//   if (message.trim().length <= 15 && !isRepairOrSafety) {
+//     return { text: aiText, grounding: [] };
+//   }
+
+//   const grounding = [];
+
+//   //🟢 THE FIX: Smart Map Trigger
+//   // Check if Groq's text mentions needing a pro, OR if the user explicitly asked for a shop
+//   const lowerText = aiText.toLowerCase();
+//   const lowerMsg = message.toLowerCase();
+
+//   const AIRecommendsPro =
+//     lowerText.includes("professional") ||
+//     lowerText.includes("repair service") ||
+//     lowerText.includes("technician") ||
+//     lowerText.includes("service center");
+
+//   const UserAskedForShop =
+//     lowerMsg.includes("where") ||
+//     lowerMsg.includes("shop") ||
+//     lowerMsg.includes("store") ||
+//     lowerMsg.includes("near me");
+
+//   if (AIRecommendsPro || UserAskedForShop) {
+//     // --- MAP LOCATOR TRACKING ---
+//     if (!location || !location.latitude || !location.longitude) {
+//       console.log(
+//         "❌ MAP ERROR: Your React frontend did not send GPS coordinates. The browser is blocking Location!",
+//       );
+//       return { text: aiText, grounding };
+//     }
+
+//     console.log(
+//       `🗺️ Complex issue detected. Fetching shops for Lat: ${location.latitude}, Lng: ${location.longitude}`,
+//     );
+
+//     // 🟢 The Magic: Use Gemini 2.5 Flash for Maps
+//     const mapGrounding = await getNearbyShopsViaGemini(location, message);
+
+//     if (mapGrounding.length > 0) {
+//       console.log(
+//         `✅ MAP SUCCESS: Gemini 2.5 Native Maps found ${mapGrounding.length} shops!`,
+//       );
+//       grounding.push(...mapGrounding);
+//     } else {
+//       // If it tried to search but found nothing
+//       console.log(
+//         "⚠️ MAP WARNING: Gemini Native Maps searched, but found 0 shops nearby.",
+//       );
+//     }
+//   } else {
+//     // 🟢 FIXED: If it skipped the map entirely because it was a simple task
+//     console.log(
+//       "⏭️ MAP SKIPPED: Issue is a simple DIY/cleaning task. No map needed.",
+//     );
+//   }
+
+//   return { text: aiText, grounding };
+// };
+
 const getSmartRepairAdvice = async (message, history, location) => {
-  // 1. Get Text from Groq
-  const groqResponse = await getRepairAdvice(message, history, location);
-  const aiText = groqResponse.text;
+  try {
+    // 1. Get raw response from Groq
+    const groqResponse = await getRepairAdvice(message, history, location);
+    let aiText = groqResponse.text;
 
-  const isRepairOrSafety =
-    aiText.includes("1.") || aiText.toLowerCase().includes("safety");
-  if (message.trim().length <= 15 && !isRepairOrSafety) {
-    return { text: aiText, grounding: [] };
-  }
+    const grounding = [];
 
-  const grounding = [];
+    // 2. Detect the hidden AI Action Flags
+    const needsMap = aiText.includes("[SHOW_MAP]");
+    const needsVideos = aiText.includes("[SHOW_VIDEOS]");
 
-  //🟢 THE FIX: Smart Map Trigger
-  // Check if Groq's text mentions needing a pro, OR if the user explicitly asked for a shop
-  const lowerText = aiText.toLowerCase();
-  const lowerMsg = message.toLowerCase();
+    // 3. Strip the tags out so the user's chat bubble looks perfectly clean
+    aiText = aiText
+      .replace("[SHOW_MAP]", "")
+      .replace("[SHOW_VIDEOS]", "")
+      .trim();
 
-  const AIRecommendsPro =
-    lowerText.includes("professional") ||
-    lowerText.includes("repair service") ||
-    lowerText.includes("technician") ||
-    lowerText.includes("service center");
+    // 4. TRIGGER MAPS (Only if safety risk / professional needed)
+    if (needsMap) {
+      if (!location || !location.latitude || !location.longitude) {
+        console.log("❌ MAP ERROR: No GPS coordinates provided by frontend.");
+      } else {
+        console.log(
+          `🗺️ AI Flagged [SHOW_MAP]. Fetching shops via Gemini for Lat: ${location.latitude}`,
+        );
+        const mapGrounding = await getNearbyShopsViaGemini(location, message);
 
-  const UserAskedForShop =
-    lowerMsg.includes("where") ||
-    lowerMsg.includes("shop") ||
-    lowerMsg.includes("store") ||
-    lowerMsg.includes("near me");
-
-  if (AIRecommendsPro || UserAskedForShop) {
-    // --- MAP LOCATOR TRACKING ---
-    if (!location || !location.latitude || !location.longitude) {
-      console.log(
-        "❌ MAP ERROR: Your React frontend did not send GPS coordinates. The browser is blocking Location!",
-      );
-      return { text: aiText, grounding };
+        if (mapGrounding && mapGrounding.length > 0) {
+          console.log(`✅ MAP SUCCESS: Found ${mapGrounding.length} shops!`);
+          grounding.push(...mapGrounding);
+        } else {
+          console.log("⚠️ MAP WARNING: Gemini searched but found 0 shops.");
+        }
+      }
     }
 
-    console.log(
-      `🗺️ Complex issue detected. Fetching shops for Lat: ${location.latitude}, Lng: ${location.longitude}`,
-    );
+    // 5. TRIGGER VIDEOS (Only if safe DIY steps were provided)
+    if (needsVideos) {
+      console.log("🎥 AI Flagged [SHOW_VIDEOS]. Fetching YouTube tutorials...");
+      try {
+        const youtubeRes = await axios.get(
+          `https://www.googleapis.com/youtube/v3/search`,
+          {
+            params: {
+              part: "snippet",
+              q: `${message} repair tutorial`,
+              key: process.env.YOUTUBE_API_KEY,
+              maxResults: 3,
+              type: "video",
+            },
+          },
+        );
 
-    // 🟢 The Magic: Use Gemini 2.5 Flash for Maps
-    const mapGrounding = await getNearbyShopsViaGemini(location, message);
-
-    if (mapGrounding.length > 0) {
-      console.log(
-        `✅ MAP SUCCESS: Gemini 2.5 Native Maps found ${mapGrounding.length} shops!`,
-      );
-      grounding.push(...mapGrounding);
-    } else {
-      // If it tried to search but found nothing
-      console.log(
-        "⚠️ MAP WARNING: Gemini Native Maps searched, but found 0 shops nearby.",
-      );
+        if (youtubeRes.data && youtubeRes.data.items) {
+          youtubeRes.data.items.forEach((v) => {
+            grounding.push({
+              web: {
+                title: v.snippet.title,
+                url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+                thumbnail:
+                  v.snippet.thumbnails?.medium?.url ||
+                  v.snippet.thumbnails?.default?.url,
+              },
+            });
+          });
+          console.log(
+            `✅ VIDEO SUCCESS: Loaded ${youtubeRes.data.items.length} tutorials!`,
+          );
+        }
+      } catch (ytError) {
+        console.error("❌ VIDEO ERROR: YouTube API failed:", ytError.message);
+      }
     }
-  } else {
-    // 🟢 FIXED: If it skipped the map entirely because it was a simple task
-    console.log(
-      "⏭️ MAP SKIPPED: Issue is a simple DIY/cleaning task. No map needed.",
-    );
-  }
 
-  return { text: aiText, grounding };
+    // 6. Return the clean text and dynamic grounding to the controller
+    return { text: aiText, grounding };
+  } catch (error) {
+    console.error("❌ Smart Repair Service Error:", error.message);
+    throw error;
+  }
 };
 
 module.exports = { getSmartRepairAdvice };
