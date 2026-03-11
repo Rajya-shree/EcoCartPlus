@@ -34,11 +34,20 @@ app.use(
 );
 
 app.use(express.json());
+// app.use(
+//   cors({
+//     origin: process.env.FRONTEND_URL || "http://localhost:5173",
+//     credentials: true, // Required for sessions to work over CORS
+//   }),
+// );
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true, // Required for sessions to work over CORS
-  }),
+    origin: [
+      "http://localhost:5173",
+      "https://resplendent-pie-a488f0.netlify.app"
+    ],
+    credentials: true,
+  })
 );
 
 // Logger Middleware
