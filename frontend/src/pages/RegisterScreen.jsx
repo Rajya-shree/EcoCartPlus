@@ -10,6 +10,7 @@ const RegisterScreen = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate(); // 3. INITIALIZE navigate
   const { login } = useAuth(); // 4. GET THE LOGIN FUNCTION
@@ -18,13 +19,20 @@ const RegisterScreen = () => {
   const submitHandler = async (e) => {
     e.preventDefault(); // Prevents the page from reloading
 
-    console.log("Form submit triggered");
-
-    // Optional: Add password validation
+    // 🟢 1. Do the password check BEFORE turning on the loading state!
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
+
+    setIsLoading(true);
+    console.log("Form submit triggered...");
+
+    // Optional: Add password validation
+    // if (password.length < 6) {
+    //   toast.error("Password must be at least 6 characters");
+    //   return;
+    // }
     console.log("Sending registration with:", { username, email, password });
 
     try {
@@ -54,6 +62,9 @@ const RegisterScreen = () => {
 
       // Keep the console log for debugging, but the toast will handle the user alert
       console.error("Registration failed:", errorMessage);
+    } finally {
+      // 🟢 3. Turn off the loading state NO MATTER WHAT happens
+      setIsLoading(false);
     }
   };
 
@@ -102,8 +113,20 @@ const RegisterScreen = () => {
             />
           </div>
 
-          <button type="submit" className="auth-button green">
+          {/* <button type="submit" className="auth-button green">
             Get Started
+          </button> */}
+          {/* 🟢 4. The Smart Button */}
+          <button
+            type="submit"
+            className="auth-button green"
+            disabled={isLoading}
+            style={{
+              opacity: isLoading ? 0.7 : 1,
+              cursor: isLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            {isLoading ? "Waking up server... (can take 50s)" : "Get Started"}
           </button>
         </form>
 
