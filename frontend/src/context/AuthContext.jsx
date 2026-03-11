@@ -19,9 +19,21 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("userInfo", JSON.stringify(data));
   };
 
+  // const logout = () => {
+  //   localStorage.removeItem("userInfo");
+  //   localStorage.removeItem("chatHistory");
+  //   setUserInfo(null);
+  //   localStorage.removeItem("userInfo");
+  //   window.location.href = "/login";
+  // };
   const logout = () => {
+    // 1. The Nuclear Option: Wipe ALL local storage clean
+    localStorage.clear();
+
+    // 2. Clear your React state for this specific file
     setUserInfo(null);
-    localStorage.removeItem("userInfo");
+
+    // 3. Force a hard redirect to the login page (which also refreshes React's memory)
     window.location.href = "/login";
   };
 
