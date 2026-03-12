@@ -285,35 +285,35 @@ const DiagnosisScreen = () => {
       let combinedGrounding = data.grounding || [];
 
       // 2. 🟢 RESTORED: Fetch Your Gemini Video Recommendations
-      const aiGaveInstructions =
-        diagnosisText?.toLowerCase().includes("1.") ||
-        diagnosisText?.toLowerCase().includes("step");
+      //   const aiGaveInstructions =
+      //     diagnosisText?.toLowerCase().includes("1.") ||
+      //     diagnosisText?.toLowerCase().includes("step");
 
-      if (aiGaveInstructions) {
-        try {
-          const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify({
-              diagnosis: diagnosisText,
-              deviceName: userMessage.content,
-            }),
-          });
-          const vData = await vRes.json();
-          if (vData.videos?.length > 0) {
-            const videoGrounding = vData.videos.slice(0, 4).map((v) => ({
-              web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
-            }));
-            // Add Gemini videos to the map data
-            combinedGrounding = [...combinedGrounding, ...videoGrounding];
-          }
-        } catch (vErr) {
-          console.warn("Gemini Video Service skipped:", vErr);
-        }
-      }
+      //   if (aiGaveInstructions) {
+      //     try {
+      //       const vRes = await fetch(VIDEO_RECOMMENDATIONS_URL, {
+      //         method: "POST",
+      //         headers: {
+      //           "Content-Type": "application/json",
+      //           ...(token && { Authorization: `Bearer ${token}` }),
+      //         },
+      //         body: JSON.stringify({
+      //           diagnosis: diagnosisText,
+      //           deviceName: userMessage.content,
+      //         }),
+      //       });
+      //       const vData = await vRes.json();
+      //       if (vData.videos?.length > 0) {
+      //         const videoGrounding = vData.videos.slice(0, 4).map((v) => ({
+      //           web: { url: v.url, title: v.title, thumbnail: v.thumbnail },
+      //         }));
+      //         // Add Gemini videos to the map data
+      //         combinedGrounding = [...combinedGrounding, ...videoGrounding];
+      //       }
+      //     } catch (vErr) {
+      //       console.warn("Gemini Video Service skipped:", vErr);
+      //     }
+      //   }
 
       setMessages((prev) => [
         ...prev,

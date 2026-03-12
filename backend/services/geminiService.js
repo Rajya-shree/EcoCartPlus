@@ -105,11 +105,35 @@ const getNearbyShopsViaGemini = async (location, message) => {
   }
 };
 
+const getBestVideoQueryViaGemini = async (diagnosisText, userMessage) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    const prompt = `You are an expert technical researcher. Read this hardware diagnostic report.
+    User's original problem: "${userMessage}"
+    AI Diagnosis Report: "${diagnosisText}"
+    
+    Your task: Generate the absolute best, highly specific 3 to 5 word search query to find a YouTube tutorial demonstrating this exact repair. 
+    DO NOT output any conversational text. Output ONLY the search query.
+    Example: "frayed iphone lightning cable repair" or "fix sticking laptop keyboard key"`;
+
+    const result = await model.generateContent(prompt);
+    const perfectQuery = result.response.text().trim();
+    
+    return perfectQuery;
+  } catch (error) {
+    console.error("Gemini Video Query Error:", error);
+    // Fallback if Gemini fails
+    return `${userMessage} repair tutorial`; 
+  }
+};
+
 // 🟢 EXPORT BOTH FUNCTIONS
 module.exports = {
   generateGeminiContent,
   generateVideoQuery,
   getNearbyShopsViaGemini,
+  getBestVideoQueryViaGemini
 };
 
 // const { GoogleGenAI } = require("@google/genai");

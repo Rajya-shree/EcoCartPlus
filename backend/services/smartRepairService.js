@@ -151,7 +151,10 @@
 
 const { getRepairAdvice } = require("./groqService");
 // 🟢 Import our new native map tool
-const { getNearbyShopsViaGemini } = require("./geminiService");
+const {
+  getNearbyShopsViaGemini,
+  getBestVideoQueryViaGemini,
+} = require("./geminiService");
 const axios = require("axios");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -242,7 +245,7 @@ const getSmartRepairAdvice = async (message, history, location) => {
       .trim();
 
     // 4. TRIGGER MAPS (Only if safety risk / professional needed)
-    if (needsMap) {
+    if (needsMap && location && location.latitude) {
       if (!location || !location.latitude || !location.longitude) {
         console.log("❌ MAP ERROR: No GPS coordinates provided by frontend.");
       } else {
@@ -260,22 +263,63 @@ const getSmartRepairAdvice = async (message, history, location) => {
       }
     }
 
-    // 5. TRIGGER VIDEOS (Only if safe DIY steps were provided)
+    // // 5. TRIGGER VIDEOS (Only if safe DIY steps were provided)
+    // if (needsVideos) {
+    //   console.log("🎥 AI Flagged [SHOW_VIDEOS]. Fetching YouTube tutorials...");
+    //   try {
+    //     const youtubeRes = await axios.get(
+    //       `https://www.googleapis.com/youtube/v3/search`,
+    //       {
+    //         params: {
+    //           part: "snippet",
+    //           q: `${message} repair tutorial`,
+    //           key: process.env.YOUTUBE_API_KEY,
+    //           maxResults: 3,
+    //           type: "video",
+    //         },
+    //       },
+    //     );
+
+    //     if (youtubeRes.data && youtubeRes.data.items) {
+    //       youtubeRes.data.items.forEach((v) => {
+    //         grounding.push({
+    //           web: {
+    //             title: v.snippet.title,
+    //             url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+    //             thumbnail:
+    //               v.snippet.thumbnails?.medium?.url ||
+    //               v.snippet.thumbnails?.default?.url,
+    //           },
+    //         });
+    //       });
+    //       console.log(
+    //         `✅ VIDEO SUCCESS: Loaded ${youtubeRes.data.items.length} tutorials!`,
+    //       );
+    //     }
+    //   } catch (ytError) {
+    //     console.error("❌ VIDEO ERROR: YouTube API failed:", ytError.message);
+    //   }
+    // }
+
+    // --- 🟢 NEW MULTI-AGENT VIDEO LOGIC ---
     if (needsVideos) {
-      console.log("🎥 AI Flagged [SHOW_VIDEOS]. Fetching YouTube tutorials...");
+      console.log("🎥 AI Flagged [SHOW_VIDEOS]. Asking Gemini for the perfect search query...");
+      
+      // 1. Ask Gemini to read the report and generate the query
+      const smartQuery = await getBestVideoQueryViaGemini(aiText, message);
+      console.log(`🧠 Gemini suggests searching YouTube for: "${smartQuery}"`);
+
+      // 2. Fetch exactly 3 highly relevant videos using Gemini's query
       try {
-        const youtubeRes = await axios.get(
-          `https://www.googleapis.com/youtube/v3/search`,
-          {
-            params: {
-              part: "snippet",
-              q: `${message} repair tutorial`,
-              key: process.env.YOUTUBE_API_KEY,
-              maxResults: 3,
-              type: "video",
-            },
+        const youtubeRes = await axios.get(`https://www.googleapis.com/youtube/v3/search`, {
+          params: {
+            part: "snippet",
+            q: smartQuery, 
+            key: process.env.YOUTUBE_API_KEY,
+            maxResults: 3, 
+            type: "video",
           },
-        );
+        });
 
         if (youtubeRes.data && youtubeRes.data.items) {
           youtubeRes.data.items.forEach((v) => {
@@ -283,21 +327,16 @@ const getSmartRepairAdvice = async (message, history, location) => {
               web: {
                 title: v.snippet.title,
                 url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-                thumbnail:
-                  v.snippet.thumbnails?.medium?.url ||
-                  v.snippet.thumbnails?.default?.url,
+                thumbnail: v.snippet.thumbnails?.medium?.url || v.snippet.thumbnails?.default?.url,
               },
             });
           });
-          console.log(
-            `✅ VIDEO SUCCESS: Loaded ${youtubeRes.data.items.length} tutorials!`,
-          );
+          console.log(`✅ VIDEO SUCCESS: Loaded 3 highly relevant tutorials!`);
         }
       } catch (ytError) {
         console.error("❌ VIDEO ERROR: YouTube API failed:", ytError.message);
       }
     }
-
     // 6. Return the clean text and dynamic grounding to the controller
     return { text: aiText, grounding };
   } catch (error) {
