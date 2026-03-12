@@ -238,6 +238,16 @@ const getSmartRepairAdvice = async (message, history, location) => {
     const needsMap = aiText.includes("[SHOW_MAP]");
     const needsVideos = aiText.includes("[SHOW_VIDEOS]");
 
+    const isCriticalHazard =
+      /shoc|shock|spark|fire|smoke|swell|swollen|water/i.test(message);
+    if (isCriticalHazard) {
+      console.log(
+        "🚨 FAILSAFE TRIGGERED: Critical hazard detected. Forcing Map routing.",
+      );
+      needsMap = true;
+      needsVideos = false; // Forcefully block videos from loading
+    }
+
     // 3. Strip the tags out so the user's chat bubble looks perfectly clean
     aiText = aiText
       .replace("[SHOW_MAP]", "")
@@ -303,31 +313,38 @@ const getSmartRepairAdvice = async (message, history, location) => {
 
     // --- 🟢 NEW MULTI-AGENT VIDEO LOGIC ---
     if (needsVideos) {
-      console.log("🎥 AI Flagged [SHOW_VIDEOS]. Asking Gemini for the perfect search query...");
-      
+      console.log(
+        "🎥 AI Flagged [SHOW_VIDEOS]. Asking Gemini for the perfect search query...",
+      );
+
       // 1. Ask Gemini to read the report and generate the query
       const smartQuery = await getBestVideoQueryViaGemini(aiText, message);
       console.log(`🧠 Gemini suggests searching YouTube for: "${smartQuery}"`);
 
       // 2. Fetch exactly 3 highly relevant videos using Gemini's query
       try {
-        const youtubeRes = await axios.get(`https://www.googleapis.com/youtube/v3/search`, {
-          params: {
-            part: "snippet",
-            q: smartQuery, 
-            key: process.env.YOUTUBE_API_KEY,
-            maxResults: 3, 
-            type: "video",
+        const youtubeRes = await axios.get(
+          `https://www.googleapis.com/youtube/v3/search`,
+          {
+            params: {
+              part: "snippet",
+              q: smartQuery,
+              key: process.env.YOUTUBE_API_KEY,
+              maxResults: 3,
+              type: "video",
+            },
           },
-        });
+        );
 
         if (youtubeRes.data && youtubeRes.data.items) {
-          youtubeRes.data.items.forEach((v) => {
+          youtubeRes.data.items.slice(0, 5).forEach((v) => {
             grounding.push({
               web: {
                 title: v.snippet.title,
                 url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-                thumbnail: v.snippet.thumbnails?.medium?.url || v.snippet.thumbnails?.default?.url,
+                thumbnail:
+                  v.snippet.thumbnails?.medium?.url ||
+                  v.snippet.thumbnails?.default?.url,
               },
             });
           });
