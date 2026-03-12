@@ -321,8 +321,8 @@ const DiagnosisScreen = () => {
           id: Date.now() + 1,
           role: "model",
           content: diagnosisText || "Trace failed.",
-          //   grounding: data.grounding || [],
-          grounding: combinedGrounding,
+            grounding: data.grounding || [],
+        //   grounding: combinedGrounding,
           isSafetyWarning: isSafetyWarning, // Sets the flag for rendering UI
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
