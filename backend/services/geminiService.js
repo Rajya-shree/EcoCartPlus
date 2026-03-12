@@ -34,10 +34,21 @@ const generateGeminiContent = async (prompt) => {
  */
 const generateVideoQuery = async (diagnosisText, deviceName) => {
   try {
+    // const prompt = `
+    //   You are an assistant for EcoNova+. Based on this repair diagnosis for a ${deviceName}: "${diagnosisText}",
+    //   generate a single, highly effective YouTube search query to find a visual repair guide.
+    //   Return ONLY the query string. No quotes, no preamble. Limit to 5 words max.
+    // `;
     const prompt = `
-      You are an assistant for EcoNova+. Based on this repair diagnosis for a ${deviceName}: "${diagnosisText}",
-      generate a single, highly effective YouTube search query to find a visual repair guide.
-      Return ONLY the query string. No quotes, no preamble. Limit to 5 words max.
+      You are a technical researcher for EcoNova+. 
+      Read this repair diagnosis: "${diagnosisText}"
+      
+      Generate a highly specific 3 to 5 word YouTube search query to find a visual repair tutorial for this exact issue.
+      
+      CRITICAL RULES:
+      1. You MUST identify and include the specific hardware component name from the diagnosis (e.g., "USB data cable", "laptop keyboard").
+      2. DO NOT use generic words like "broken", "hack", "hardware", "device", "any", or "electronics".
+      3. Return ONLY the search query string. No quotes, no preamble.
     `;
 
     const response = await ai.models.generateContent({
@@ -108,7 +119,7 @@ const getNearbyShopsViaGemini = async (location, message) => {
 const getBestVideoQueryViaGemini = async (diagnosisText, userMessage) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    
+
     const prompt = `You are an expert technical researcher. Read this hardware diagnostic report.
     User's original problem: "${userMessage}"
     AI Diagnosis Report: "${diagnosisText}"
@@ -119,12 +130,12 @@ const getBestVideoQueryViaGemini = async (diagnosisText, userMessage) => {
 
     const result = await model.generateContent(prompt);
     const perfectQuery = result.response.text().trim();
-    
+
     return perfectQuery;
   } catch (error) {
     console.error("Gemini Video Query Error:", error);
     // Fallback if Gemini fails
-    return `${userMessage} repair tutorial`; 
+    return `${userMessage} repair tutorial`;
   }
 };
 
@@ -133,7 +144,7 @@ module.exports = {
   generateGeminiContent,
   generateVideoQuery,
   getNearbyShopsViaGemini,
-  getBestVideoQueryViaGemini
+  getBestVideoQueryViaGemini,
 };
 
 // const { GoogleGenAI } = require("@google/genai");
