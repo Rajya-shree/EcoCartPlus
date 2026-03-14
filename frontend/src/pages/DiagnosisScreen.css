@@ -226,7 +226,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%; /* Takes full height of its container */
+  height: 100vh; /* Takes full height of its container */
   background: #f9fafb;
   overflow: hidden;
 }
@@ -330,6 +330,7 @@
   overflow-y: auto;
   padding-bottom: 180px; /* Safe space for the floating dock */
   scroll-behavior: smooth;
+  scroll-padding-top: 2rem;
 }
 
 .chat-limit-container {
@@ -569,8 +570,146 @@
 }
 
 /* 6. Floating Command Center */
+
+/* 6. Floating Command Center */
 .floating-command-center {
-  position: fixed; /* Keeps it inside the main window, ignoring the sidebar */
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 20px 20px 20px;
+  background: linear-gradient(to top, #f9fafb 80%, transparent);
+  z-index: 20;
+  margin-top: auto;
+}
+
+.input-container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Scroll Button */
+.scroll-to-bottom-btn {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transition: all 0.2s ease;
+}
+
+.scroll-to-bottom-btn:hover {
+  transform: translateX(-50%) translateY(-2px);
+  background: #f8fafc;
+}
+
+/* 🟢 The Stacked Modern Form */
+.modern-input-form {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 0.75rem 0.75rem 0.5rem 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.modern-input-form:focus-within {
+  border-color: #34d399;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+}
+
+/* 🟢 The Auto-Expanding Text Area */
+.modern-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 1.05rem;
+  color: #1e293b;
+  min-height: 28px;
+  max-height: 150px; /* Limits growth before scrolling internally */
+  padding: 0.25rem 0.5rem;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
+.modern-textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* 🟢 Bottom Action Row */
+.modern-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.action-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.attach-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #64748b;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.attach-icon-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.modern-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modern-send-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+.modern-send-btn:disabled {
+  background: #f1f5f9;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* .floating-command-center {
+  position: fixed; /* Keeps it inside the main window, ignoring the sidebar 
   bottom: 0;
   left: 280px;
   right: 0;
@@ -581,25 +720,41 @@
     rgba(255, 255, 255, 0.9) 80%,
     transparent
   );
-  pointer-events: none; /* Let clicks pass through gradient */
+  pointer-events: none; /* Let clicks pass through gradient 
   z-index: 20;
   border-radius: 0rem;
+} 
+
+.floating-command-center {
+  position: sticky; /* Changed from fixed 
+  bottom: 0;
+  width: 100%; /* Take full width of parent container 
+  padding: 10px 20px 20px 20px;
+  background: linear-gradient(
+    to top,
+    white 70%,
+    rgba(255, 255, 255, 0.9) 80%,
+    transparent
+  );
+  z-index: 20;
+  border-radius: 0rem;
+  margin-top: auto;
 }
 
 .input-container {
   max-width: 900px;
   margin: 0 auto;
-  pointer-events: auto; /* Re-enable clicks for the form */
+  pointer-events: auto; /* Re-enable clicks for the form 
   position: relative;
-}
+}*/
 
 /* 🟢 THE SCROLL TO BOTTOM BUTTON */
-.scroll-to-bottom-btn {
+/* .scroll-to-bottom-btn {
   position: absolute;
   top: -55px; /* Floats above the typing box */
-  /* left: 50%; */
+/* left: 50%; 
   left: 50%;
-  /* bottom: 280px; */
+  /* bottom: 280px; 
   transform: translateX(-50%);
   background: white;
   border: 1px solid #e2e8f0;
@@ -609,11 +764,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #059669; /* Eco Green */
+  color: #059669; /* Eco Green 
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 100;
   transition: all 0.2s ease;
+} */
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  top: -60px; /* Adjusted slightly */
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #059669; /* Eco Green */
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transition: all 0.2s ease;
+  pointer-events: auto; /* Ensure it remains clickable */
 }
 
 .scroll-to-bottom-btn:hover {
@@ -635,12 +811,14 @@
 .input-form {
   position: relative;
   box-shadow: 0 20px 10px -10px rgba(0, 0, 0, 0.1);
-  border-radius: 2.5rem;
+  border-radius: 1.5rem;
   background: white;
   border: 1px solid #e2e8f0;
+  display: flex; /* 🟢 NEW: Allow internal items to align properly */
+  align-items: flex-end; /* 🟢 NEW: Keep buttons at the bottom as text grows */
 }
 
-.terminal-icon {
+/* .terminal-icon {
   position: absolute;
   left: 1.5rem;
   top: 50%;
@@ -649,9 +827,19 @@
   background: white;
   padding: 0.5rem;
   border-radius: 1rem;
+} */
+.terminal-icon {
+  color: #cbd5e1;
+  background: white;
+  padding: 0.5rem 0.5rem 0.5rem 1rem; /* 🟢 Adjust padding for nice spacing */
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem; /* 🟢 Keeps it aligned with the first line of text */
 }
 
-.pro-input-field {
+/* .pro-input-field {
   width: 100%;
   padding: 1.25rem 10rem 1.25rem 4.5rem;
   border-radius: 2.5rem;
@@ -662,7 +850,27 @@
   font-family: inherit;
   transition: all 0.2s;
   box-sizing: border-box;
+} */
+
+.pro-input-field {
+  width: 100%;
+  padding: 1.25rem 1rem 1.25rem 0.5rem; /* 🟢 High right padding stops text from hitting button */
+  border-radius: 1.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.05rem;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  resize: none; /* 🟢 Hides the drag corner */
+  min-height: 64px;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.5;
+  color: #1e293b; /* 🟢 Ensure text color is dark */
 }
+
 .pro-input-field:focus {
   border-color: #34d399;
   box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
@@ -672,7 +880,7 @@
   font-weight: 500;
 }
 
-.initiate-btn {
+/* .initiate-btn {
   position: absolute;
   right: 0.75rem;
   top: 0.75rem;
@@ -684,6 +892,26 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+} */
+.initiate-btn {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem; /* 🟢 Anchored to bottom */
+  height: 40px;
+  background: #0f172a;
+  color: white;
+  padding: 0 1.5rem;
+  border-radius: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   text-transform: uppercase;
   font-weight: 900;
   font-size: 0.7rem;
@@ -833,13 +1061,30 @@
     background: white;
     border-top: 1px solid #f1f5f9;
   }
-  .pro-input-field {
+  /* .pro-input-field {
     padding: 1rem 4rem 1rem 3rem;
     font-size: 1rem;
     border-radius: 1.5rem;
+  } */
+
+  .modern-textarea {
+    font-size: 1rem; /* iOS requires 16px minimum to prevent auto-zoom */
   }
-  .terminal-icon {
+  .pro-input-field {
+    font-size: 1rem;
+    padding: 1rem 0.5rem;
+  }
+  /* .terminal-icon {
     left: 1rem;
+  } */
+  .terminal-icon {
+    position: absolute;
+    left: 1.5rem;
+    bottom: 1.1rem; /* 🟢 Anchored to bottom */
+    color: #cbd5e1;
+    background: white;
+    padding: 0.2rem;
+    border-radius: 1rem;
   }
   .terminal-icon svg {
     width: 20px;
@@ -878,3 +1123,64 @@
 .msg-bubble > *:last-child {
   margin-bottom: 0 !important;
 }
+
+
+/**/
+/* 🟢 Image Upload Preview Styles */
+.image-preview-container {
+  position: absolute;
+  bottom: 100%;
+  left: 1rem;
+  margin-bottom: 0.75rem;
+  animation: slideUp 0.2s ease-out;
+  z-index: 30;
+}
+
+.preview-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.preview-wrapper img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 1rem;
+  border: 2px solid #10b981; /* Emerald border to match theme */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.preview-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: white;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.preview-remove-btn:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+/* 🟢 Image inside User Chat Bubble */
+.user-uploaded-image {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+/**/

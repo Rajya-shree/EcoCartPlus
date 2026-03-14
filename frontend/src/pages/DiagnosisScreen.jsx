@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ShieldCheck,
   ChevronDown,
+  X,
 } from "lucide-react";
 import {
   DIAGNOSIS_URL,
@@ -56,8 +57,31 @@ const DiagnosisScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  // 🟢 NEW: Image Upload States & Refs
+  const [selectedImage, setSelectedImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // 🟢 NEW: Handle image selection and conversion
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result.split(",")[1];
+        setSelectedImage({
+          data: base64Data,
+          mimeType: file.type,
+          preview: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const chatCanvasRef = useRef(null);
   const lastUserMsgRef = useRef(null);
+
+  const textareaRef = useRef(null);
 
   const [searchParams] = useSearchParams();
   const conversationIdFromUrl = searchParams.get("id");
@@ -200,7 +224,7 @@ const DiagnosisScreen = () => {
   const handleScroll = () => {
     if (!chatCanvasRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = chatCanvasRef.current;
-    const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+    const isScrolledUp = scrollHeight - scrollTop - clientHeight > 50;
     setShowScrollButton(isScrolledUp);
   };
 
@@ -213,31 +237,61 @@ const DiagnosisScreen = () => {
     }
   };
 
-  useEffect(() => {
-    const lastMsg = messages[messages.length - 1];
-    if (loading) {
-      scrollToBottom();
-    } else if (lastMsg?.role === "model" && messages.length > 1) {
-      if (lastUserMsgRef.current) {
-        lastUserMsgRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      } else {
-        scrollToBottom();
-      }
-    }
-  }, [messages, loading]);
+  //   useEffect(() => {
+  //     const lastMsg = messages[messages.length - 1];
+  //     if (loading) {
+  //       scrollToBottom();
+  //     } else if (lastMsg?.role === "model" && messages.length > 1) {
+  //       if (lastUserMsgRef.current) {
+  //         lastUserMsgRef.current.scrollIntoView({
+  //           behavior: "smooth",
+  //           block: "start",
+  //         });
+  //       } else {
+  //         scrollToBottom();
+  //       }
+  //     }
+  //   }, [messages, loading]);
 
   // 🟢 FIXED: handleSend function restored with history, early-return, and accurate safety checks
+
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+
+    // 🟢 NEW: Added a slight delay so the DOM has time to render UI blocks
+    // before calculating the scroll position.
+    const scrollTimeout = setTimeout(() => {
+      if (loading) {
+        scrollToBottom();
+      } else if (lastMsg?.role === "model" && messages.length > 1) {
+        if (lastUserMsgRef.current) {
+          lastUserMsgRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        } else {
+          scrollToBottom();
+        }
+      }
+    }, 150);
+
+    return () => clearTimeout(scrollTimeout);
+  }, [messages, loading]);
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
+    // 🟢 FIXED: Auto-generate text if they only send an image
+    const userMessageContent =
+      input.trim() ||
+      (selectedImage ? "Analyze this image for repair advice." : "");
+
     const userMessage = {
       id: Date.now(),
       role: "user",
-      content: input,
+      content: userMessageContent,
+      image: selectedImage ? selectedImage.preview : null,
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -246,6 +300,12 @@ const DiagnosisScreen = () => {
     };
 
     setInput("");
+
+    const currentImage = selectedImage; // 🟢 Store temporarily for the API call
+    setSelectedImage(null); // 🟢 Clear the UI preview immediately
+
+    // Reset textarea height
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     // We explicitly store the updated history locally before setting state
     // to pass it securely to the backend in the exact same format
@@ -270,6 +330,7 @@ const DiagnosisScreen = () => {
           message: userMessage.content,
           history: updatedMessages,
           location,
+          image: currentImage,
         }),
       });
 
@@ -321,8 +382,8 @@ const DiagnosisScreen = () => {
           id: Date.now() + 1,
           role: "model",
           content: diagnosisText || "Trace failed.",
-            grounding: data.grounding || [],
-        //   grounding: combinedGrounding,
+          grounding: data.grounding || [],
+          //   grounding: combinedGrounding,
           isSafetyWarning: isSafetyWarning, // Sets the flag for rendering UI
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -593,6 +654,23 @@ const DiagnosisScreen = () => {
                       }
                     >
                       {/* 🟢 FIXED: Renders the explicit Danger Header */}
+                      {/* {msg.isSafetyWarning && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            color: "#dc2626",
+                            fontWeight: "bold",
+                            marginBottom: "0.75rem",
+                            textTransform: "uppercase",
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          <ShieldAlert size={16} />
+                          Critical Safety Protocol
+                        </div>
+                      )} */}
                       {msg.isSafetyWarning && (
                         <div
                           style={{
@@ -609,6 +687,14 @@ const DiagnosisScreen = () => {
                           <ShieldAlert size={16} />
                           Critical Safety Protocol
                         </div>
+                      )}
+                      {/* 🟢 NEW: Renders the user's uploaded image inside the green bubble */}
+                      {msg.role === "user" && msg.image && (
+                        <img
+                          src={msg.image}
+                          alt="User Upload"
+                          className="user-uploaded-image"
+                        />
                       )}
                       {renderFormattedContent(msg.content, msg.role === "user")}
                       {msg.role === "model" && renderGrounding(msg.grounding)}
@@ -657,7 +743,7 @@ const DiagnosisScreen = () => {
       </div>
 
       <div className="floating-command-center">
-        <div className="input-container relative">
+        {/* <div className="input-container relative">
           {showScrollButton && (
             <button
               className="scroll-to-bottom-btn"
@@ -668,17 +754,34 @@ const DiagnosisScreen = () => {
             </button>
           )}
 
-          <form onSubmit={handleSend} className="input-form">
+          {/* <form onSubmit={handleSend} className="input-form">
             <div className="terminal-icon">
               <Terminal size={28} />
             </div>
-            <input
+            {/* <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Describe the fault or enter the hardware SKU..."
               className="pro-input-field"
               disabled={loading}
+            /> 
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                // Submit instantly on Enter. Allow new lines with Shift+Enter.
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (input.trim() && !loading) {
+                    handleSend(e);
+                  }
+                }
+              }}
+              placeholder="Describe the fault or enter the hardware SKU... (Shift+Enter for new line)"
+              className="pro-input-field"
+              disabled={loading}
+              rows={1}
             />
             <button
               type="submit"
@@ -692,6 +795,141 @@ const DiagnosisScreen = () => {
               )}
               <span className="hide-mobile">Initiate Trace</span>
             </button>
+          </form> //
+
+          <form onSubmit={handleSend} className="modern-input-form">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (input.trim() && !loading) {
+                    handleSend(e);
+                  }
+                }
+              }}
+              placeholder="Describe the fault or attach an image..."
+              className="modern-textarea"
+              disabled={loading}
+              rows={1}
+            />
+
+            <div className="modern-action-row">
+              <div className="action-left">
+                {/* Hidden file input mapped to the Plus icon 
+                <input
+                  type="file"
+                  id="file-upload"
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  onChange={(e) =>
+                    console.log("File selected:", e.target.files[0])
+                  }
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="attach-icon-btn"
+                  title="Attach Image"
+                >
+                  <Plus size={20} />
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="modern-send-btn"
+              >
+                {loading ? (
+                  <RefreshCw size={18} className="animate-spin" />
+                ) : (
+                  <Sparkles size={18} />
+                )}
+              </button>
+            </div>
+          </form>
+        </div> */}
+        <div className="input-container relative">
+          {showScrollButton && (
+            <button
+              className="scroll-to-bottom-btn"
+              onClick={scrollToBottom}
+              type="button"
+            >
+              <ChevronDown size={24} />
+            </button>
+          )}
+
+          {/* 🟢 NEW: The floating image preview thumbnail */}
+          {selectedImage && (
+            <div className="image-preview-container">
+              <div className="preview-wrapper">
+                <img src={selectedImage.preview} alt="Upload preview" />
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="preview-remove-btn"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSend} className="modern-input-form">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  // 🟢 FIXED: Allow enter key if there is text OR an image
+                  if ((input.trim() || selectedImage) && !loading) {
+                    handleSend(e);
+                  }
+                }
+              }}
+              placeholder="Describe the fault or attach an image..."
+              className="modern-textarea"
+              disabled={loading}
+              rows={1}
+            />
+
+            <div className="modern-action-row">
+              <div className="action-left">
+                {/* 🟢 FIXED: Wired to the fileInputRef and handleImageUpload */}
+                <input
+                  type="file"
+                  id="file-upload"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="attach-icon-btn"
+                  title="Attach Image"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+
+              {/* 🟢 FIXED: Enabled if there is text OR an image */}
+              <button
+                type="submit"
+                disabled={(!input.trim() && !selectedImage) || loading}
+                className="modern-send-btn"
+              >
+                {loading ? (
+                  <RefreshCw size={18} className="animate-spin" />
+                ) : (
+                  <Sparkles size={18} />
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

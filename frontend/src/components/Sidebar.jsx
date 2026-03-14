@@ -59,7 +59,7 @@ const Sidebar = () => {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       const { data } = await axios.get(LIFECYCLE_URL, config);
       const needsAttention = data.filter(
-        (device) => device.status === "Needs Maintenance"
+        (device) => device.status === "Needs Maintenance",
       );
       setNotifications(needsAttention);
     } catch (err) {
@@ -81,8 +81,8 @@ const Sidebar = () => {
     <>
       {/* 🟢 MOBILE HAMBURGER BUTTON (Hidden on Desktop) */}
       {!isMobileOpen && (
-        <button 
-          className="mobile-hamburger-btn" 
+        <button
+          className="mobile-hamburger-btn"
           onClick={() => setIsMobileOpen(true)}
         >
           <Menu size={24} />
@@ -90,8 +90,8 @@ const Sidebar = () => {
       )}
 
       {/* 🟢 MOBILE DARK OVERLAY (Click outside to close) */}
-      <div 
-        className={`mobile-overlay ${isMobileOpen ? 'active' : ''}`} 
+      <div
+        className={`mobile-overlay ${isMobileOpen ? "active" : ""}`}
         onClick={() => setIsMobileOpen(false)}
       ></div>
 
@@ -100,11 +100,10 @@ const Sidebar = () => {
         className={`sidebar-aside ${isCollapsed ? "collapsed" : "expanded"} ${isMobileOpen ? "mobile-open" : ""}`}
       >
         <div className={`sidebar-wrapper ${isCollapsed ? "is-collapsed" : ""}`}>
-          
           {/* Header & Brand */}
           <div className="sidebar-header">
             <div className="brand-box">
-              <div className="brand-left" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div className="brand-left">
                 <div
                   className="logo-icon"
                   onClick={() => setIsCollapsed(!isCollapsed)}
@@ -113,9 +112,12 @@ const Sidebar = () => {
                 </div>
                 {!isCollapsed && <span className="brand-name">EcoNova+</span>}
               </div>
-              
+
               {/* 🟢 MOBILE CLOSE BUTTON (X) */}
-              <button className="mobile-close-btn" onClick={() => setIsMobileOpen(false)}>
+              <button
+                className="mobile-close-btn"
+                onClick={() => setIsMobileOpen(false)}
+              >
                 <X size={24} />
               </button>
             </div>
@@ -187,8 +189,13 @@ const Sidebar = () => {
 
                 {/* Terminate (Logout) */}
                 {!isCollapsed && (
-                  <button onClick={handleLogout} className="terminate-btn">
-                    <LogOut size={14} /> <span>Terminate</span>
+                  <button
+                    onClick={handleLogout}
+                    className="terminate-btn"
+                    title="Terminate Session"
+                  >
+                    <LogOut size={isCollapsed ? 20 : 16} />{" "}
+                    {!isCollapsed && <span>Terminate</span>}
                   </button>
                 )}
               </>
