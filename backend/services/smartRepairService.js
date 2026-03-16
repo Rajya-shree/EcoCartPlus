@@ -365,21 +365,28 @@
 
 // module.exports = { getSmartRepairAdvice };
 
-const { getRepairAdvice } = require("./groqService");
-// 🟢 Import our new native map tool
+// 🟢 1. We removed the old Groq import
+// 🟢 2. We are now importing the new getRepairAdviceGemini function
 const {
   getNearbyShopsViaGemini,
   getBestVideoQueryViaGemini,
+  getRepairAdviceGemini,
 } = require("./geminiService");
 const axios = require("axios");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const getSmartRepairAdvice = async (message, history, location) => {
+// 🟢 3. We added 'image' as the 4th parameter so it doesn't get dropped
+const getSmartRepairAdvice = async (message, history, location, image) => {
   try {
-    // 1. Get raw response from Groq
-    const groqResponse = await getRepairAdvice(message, history, location);
-    let aiText = groqResponse.text;
+    // 🟢 4. We now pass the message AND the image to Gemini 2.5 Flash
+    const aiResponse = await getRepairAdviceGemini(
+      message,
+      history,
+      location,
+      image,
+    );
+    let aiText = aiResponse.text;
 
     const grounding = [];
 
@@ -468,134 +475,103 @@ const getSmartRepairAdvice = async (message, history, location) => {
 module.exports = { getSmartRepairAdvice };
 
 // const { getRepairAdvice } = require("./groqService");
+// // 🟢 Import our new native map tool
+// const {
+//   getNearbyShopsViaGemini,
+//   getBestVideoQueryViaGemini,
+// } = require("./geminiService");
 // const axios = require("axios");
 // const dotenv = require("dotenv");
 // dotenv.config();
 
-// const getSmartRepairAdvice = async (message, history, location) => {
-//   const groqResponse = await getRepairAdvice(message, history, location);
-//   const aiText = groqResponse.text;
-
-//   const isRepairOrSafety =
-//     aiText.includes("1.") || aiText.toLowerCase().includes("safety");
-//   if (message.trim().length <= 15 && !isRepairOrSafety) {
-//     return { text: aiText, grounding: [] };
-//   }
-
-//   const grounding = [];
-
-//   // try {
-//   //   const youtubeRes = await axios.get(
-//   //     `https://www.googleapis.com/youtube/v3/search`,
-//   //     {
-//   //       params: {
-//   //         part: "snippet",
-//   //         q: `${message} repair guide tutorial`,
-//   //         key: process.env.YOUTUBE_API_KEY,
-//   //         maxResults: 3,
-//   //         type: "video",
-//   //       },
-//   //     }
-//   //   );
-
-//   //   youtubeRes.data.items.forEach((v) => {
-//   //     grounding.push({
-//   //       web: {
-//   //         title: v.snippet.title,
-//   //         url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-//   //         thumbnail: v.snippet.thumbnails.medium.url,
-//   //       },
-//   //     });
-//   //   });
-
-//   //   if (location && location.latitude && location.longitude) {
-//   //     const mapsRes = await axios.get(
-//   //       `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
-//   //       {
-//   //         params: {
-//   //           location: `${location.latitude},${location.longitude}`,
-//   //           radius: 5000,
-//   //           keyword: "authorized electronics repair shop",
-//   //           key: process.env.GOOGLE_MAPS_API_KEY,
-//   //         },
-//   //       }
-//   //     );
-
-//   //     mapsRes.data.results.slice(0, 3).forEach((s) => {
-//   //       grounding.push({
-//   //         maps: {
-//   //           title: s.name,
-//   //           address: s.vicinity,
-//   //           url: `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(s.name)}&query_place_id=${s.place_id}`,
-//   //         },
-//   //       });
-//   //     });
-//   //   }
-//   // }
-
+// const getSmartRepairAdvice = async (message, history, location,) => {
 //   try {
-//     const youtubePromise = axios.get(
-//       `https://www.googleapis.com/youtube/v3/search`,
-//       {
-//         params: {
-//           part: "snippet",
-//           q: `${message} repair tutorial`,
-//           key: process.env.YOUTUBE_API_KEY,
-//           maxResults: 3,
-//           type: "video",
-//         },
-//       },
-//     );
+//     // 1. Get raw response from Groq
+//     const groqResponse = await getRepairAdvice(message, history, location);
+//     let aiText = groqResponse.text;
 
-//     const mapsPromise =
-//       location && location.latitude && location.longitude
-//         ? axios.get(
-//             `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
-//             {
-//               params: {
-//                 location: `${location.latitude},${location.longitude}`,
-//                 radius: 5000,
-//                 keyword: "authorized electronics repair shop",
-//                 key: process.env.GOOGLE_MAPS_API_KEY,
-//               },
+//     const grounding = [];
+
+//     // 2. Detect the hidden AI Action Flags
+//     const needsMap = aiText.includes("[SHOW_MAP]");
+//     const needsVideos = aiText.includes("[SHOW_VIDEOS]");
+
+//     // 3. Strip the tags out so the user's chat bubble looks perfectly clean
+//     aiText = aiText
+//       .replace("[SHOW_MAP]", "")
+//       .replace("[SHOW_VIDEOS]", "")
+//       .trim();
+
+//     // 4. TRIGGER MAPS (Only if safety risk / professional needed)
+//     if (needsMap && location && location.latitude) {
+//       if (!location || !location.latitude || !location.longitude) {
+//         console.log("❌ MAP ERROR: No GPS coordinates provided by frontend.");
+//       } else {
+//         console.log(
+//           `🗺️ AI Flagged [SHOW_MAP]. Fetching shops via Gemini for Lat: ${location.latitude}`,
+//         );
+//         const mapGrounding = await getNearbyShopsViaGemini(location, message);
+
+//         if (mapGrounding && mapGrounding.length > 0) {
+//           console.log(`✅ MAP SUCCESS: Found ${mapGrounding.length} shops!`);
+//           grounding.push(...mapGrounding);
+//         } else {
+//           console.log("⚠️ MAP WARNING: Gemini searched but found 0 shops.");
+//         }
+//       }
+//     }
+
+//     // --- 🟢 NEW MULTI-AGENT VIDEO LOGIC ---
+//     // Added !needsMap to ensure videos never load if a map was already triggered
+//     if (needsVideos && !needsMap) {
+//       console.log(
+//         "🎥 AI Flagged [SHOW_VIDEOS]. Asking Gemini for the perfect search query...",
+//       );
+
+//       // 1. Ask Gemini to read the report and generate the query
+//       const smartQuery = await getBestVideoQueryViaGemini(aiText, message);
+//       console.log(`🧠 Gemini suggests searching YouTube for: "${smartQuery}"`);
+
+//       // 2. Fetch exactly 3 highly relevant videos using Gemini's query
+//       try {
+//         const youtubeRes = await axios.get(
+//           `https://www.googleapis.com/youtube/v3/search`,
+//           {
+//             params: {
+//               part: "snippet",
+//               q: smartQuery,
+//               key: process.env.YOUTUBE_API_KEY,
+//               maxResults: 3,
+//               type: "video",
 //             },
-//           )
-//         : Promise.resolve(null); // Resolves instantly if no location
-
-//     // Await both APIs at the exact same time
-//     const [youtubeRes, mapsRes] = await Promise.all([
-//       youtubePromise,
-//       mapsPromise,
-//     ]);
-
-//     if (youtubeRes && youtubeRes.data.items) {
-//       youtubeRes.data.items.forEach((v) => {
-//         grounding.push({
-//           web: {
-//             title: v.snippet.title,
-//             url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
-//             thumbnail: v.snippet.thumbnails.medium.url,
 //           },
-//         });
-//       });
-//     }
+//         );
 
-//     if (mapsRes && mapsRes.data.results) {
-//       mapsRes.data.results.slice(0, 3).forEach((s) => {
-//         grounding.push({
-//           maps: {
-//             title: s.name,
-//             address: s.vicinity,
-//             url: `http://googleusercontent.com/maps.google.com/maps?q=${encodeURIComponent(s.name)}&query_place_id=${s.place_id}`,
-//           },
-//         });
-//       });
+//         if (youtubeRes.data && youtubeRes.data.items) {
+//           // Changed from slice(0, 5) back to slice(0, 3) to match your UI needs
+//           youtubeRes.data.items.slice(0, 3).forEach((v) => {
+//             grounding.push({
+//               web: {
+//                 title: v.snippet.title,
+//                 url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+//                 thumbnail:
+//                   v.snippet.thumbnails?.medium?.url ||
+//                   v.snippet.thumbnails?.default?.url,
+//               },
+//             });
+//           });
+//           console.log(`✅ VIDEO SUCCESS: Loaded 3 highly relevant tutorials!`);
+//         }
+//       } catch (ytError) {
+//         console.error("❌ VIDEO ERROR: YouTube API failed:", ytError.message);
+//       }
 //     }
-//   } catch (err) {
-//     console.error("Hybrid Grounding Error:", err.message);
+//     // 6. Return the clean text and dynamic grounding to the controller
+//     return { text: aiText, grounding };
+//   } catch (error) {
+//     console.error("❌ Smart Repair Service Error:", error.message);
+//     throw error;
 //   }
-
-//   return { text: aiText, grounding };
 // };
 
 // module.exports = { getSmartRepairAdvice };

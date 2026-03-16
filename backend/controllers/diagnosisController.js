@@ -50,19 +50,19 @@ const asyncHandler = require("express-async-handler");
 const { getSmartRepairAdvice } = require("../services/smartRepairService");
 
 const diagnoseDevice = asyncHandler(async (req, res) => {
-  const { message, history, location } = req.body;
+  const { message, history, location, image } = req.body;
 
-  if (!message) {
+  if (!message && !image) {
     res.status(400);
-    throw new Error("Message is required");
+    throw new Error("Message or image is required");
   }
 
   // 🟢 THIS IS THE FIX: Call the Smart Service so it actually fetches the Map!
-  const result = await getSmartRepairAdvice(message, history || [], location);
+  const result = await getSmartRepairAdvice(message, history || [], location, image );
 
   res.status(200).json({
     advice: result.text,
-    grounding: result.grounding, // This is where the Maps are finally attached!
+    grounding: result.grounding, 
   });
 });
 

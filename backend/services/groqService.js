@@ -1,7 +1,12 @@
 const Groq = require("groq-sdk");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const getRepairAdvice = async (issueDescription, history = [], location) => {
+const getRepairAdvice = async (
+  issueDescription,
+  history = [],
+  location,
+  image,
+) => {
   //   const systemInstruction = `You are EcoNova+, an expert e-waste reduction and electronics repair assistant.
   // You must analyze the user's problem and respond by strictly following this logical flow:
 
