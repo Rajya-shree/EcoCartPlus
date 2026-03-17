@@ -123,23 +123,24 @@ const completeTask = asyncHandler(async (req, res) => {
   await Notification.findOneAndDelete({ task: task._id });
 
   // 3. Create the next recurring task for Lifecycle Tracking
-  const newDueDate = new Date();
-  newDueDate.setMonth(newDueDate.getMonth() + (task.frequencyMonths || 6));
+  if (task.frequencyMonths && task.frequencyMonths > 0) {
+    const newDueDate = new Date();
+    newDueDate.setMonth(newDueDate.getMonth() + task.frequencyMonths);
 
-  await DeviceTask.create({
-    device: task.device,
-    user: task.user,
-    taskName: task.taskName,
-    dueDate: newDueDate,
-    isComplete: false,
-    frequencyMonths: task.frequencyMonths || 6,
-    deviceCategory: task.deviceCategory,
-  });
+    await DeviceTask.create({
+      device: task.device,
+      user: task.user,
+      taskName: task.taskName,
+      dueDate: newDueDate,
+      isComplete: false,
+      frequencyMonths: task.frequencyMonths || 6,
+      deviceCategory: task.deviceCategory,
+    });
+  }
 
   // 4. Send ONLY ONE response
   res.status(200).json(updatedTask);
 });
-
 
 /**
  * @desc    Get all tasks for a single device
@@ -155,8 +156,22 @@ const getTasksForDevice = asyncHandler(async (req, res) => {
   res.status(200).json(tasks);
 });
 
+/**
+ * @desc    Get ALL tasks for the logged in user (pending and complete)
+ * @route   GET /api/tasks
+ * @access  Private
+ */
+const getAllTasks = asyncHandler(async (req, res) => {
+  const tasks = await DeviceTask.find({ user: req.user._id })
+    .sort({ dueDate: 1 })
+    .populate("device", "deviceName");
+
+  res.status(200).json(tasks);
+});
+
 module.exports = {
   getUpcomingTasks,
   completeTask,
   getTasksForDevice,
+  getAllTasks,
 };

@@ -1,5 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap");
 
+/* Force Toast notifications above all modals and blurs */
+.Toastify__toast-container {
+  z-index: 999999 !important;
+}
+
+
 .modern-dashboard {
   font-family: "Outfit", sans-serif;
   background: linear-gradient(180deg, #f0fdf4 0%, #f9fafb 100%);
@@ -25,9 +31,8 @@
   transform: scale(0.98);
 }
 
-
 /* 🟢 Ensure the MUI DatePicker popup is always above the modal */
-.MuiPopover-root, 
+.MuiPopover-root,
 .MuiPopper-root {
   z-index: 20001 !important;
 }

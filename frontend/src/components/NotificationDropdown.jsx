@@ -26,8 +26,8 @@ const NotificationDropdown = ({ userInfo, onClose }) => {
         const { data } = await axios.get(NOTIFICATIONS_URL, config);
 
         // Filter for devices needing maintenance from your DB
-        const alerts = data.filter((d) => d.status === "Needs Maintenance");
-        setNotifications(alerts);
+        //const alerts = data.filter((d) => d.status === "Needs Maintenance");
+        setNotifications(data);
       } catch (err) {
         console.error("Dropdown sync failed", err);
       } finally {
@@ -36,6 +36,24 @@ const NotificationDropdown = ({ userInfo, onClose }) => {
     };
     fetchNotifications();
   }, [userInfo]);
+
+  // 🟢 NEW: CLEAR LOGIC
+  const handleClearAll = async () => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      };
+
+      // Tell the backend database to mark all as read
+      await axios.put(`${NOTIFICATIONS_URL}/read`, {}, config);
+
+      // Clear the UI and close the dropdown
+      setNotifications([]);
+      onClose();
+    } catch (err) {
+      console.error("Failed to clear notifications", err);
+    }
+  };
 
   return (
     <div className="notif-popup-overlay animate-in fade-in zoom-in-95 duration-200">

@@ -1,3 +1,5 @@
+
+// Can be delted if the second became successfull
 const mongoose = require("mongoose");
 
 const maintenanceTaskSchema = mongoose.Schema({

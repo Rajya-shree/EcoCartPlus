@@ -98,10 +98,28 @@ const getTaskInstructions = (taskName) => {
   ];
 };
 
+// const calculateHealth = (device) => {
+//   let score = 85;
+//   const repairImpact = (device.repairsDone || 0) * 12;
+//   score = score - repairImpact;
+//   return Math.min(100, Math.max(5, score));
+// };
+
 const calculateHealth = (device) => {
-  let score = 85;
-  const repairImpact = (device.repairsDone || 0) * 12;
-  score = score - repairImpact;
+  // Base score assumes a healthy device
+  let score = 100;
+
+  // 1. Age Degradation (Simulates natural battery/hardware aging)
+  // Deducts 3 points for every year old the device is
+  const ageInYears = dayjs().diff(dayjs(device.purchaseDate), "year");
+  score -= ageInYears * 3;
+
+  // 2. The Hero Bonus (Circular Economy Right-to-Repair)
+  // Rewards the user massively for fixing the device instead of throwing it away
+  const repairBonus = (device.repairsDone || 0) * 15;
+  score += repairBonus;
+
+  // Ensure score stays between 5 and 100
   return Math.min(100, Math.max(5, score));
 };
 
@@ -119,6 +137,7 @@ const LifecycleScreen = () => {
   // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isMaintModalOpen, setIsMaintModalOpen] = useState(false);
+  const [maintTab, setMaintTab] = useState("pending"); // 'pending' or 'completed'
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
 
@@ -152,7 +171,8 @@ const LifecycleScreen = () => {
     try {
       const [devicesRes, tasksRes] = await Promise.all([
         axios.get(LIFECYCLE_URL, config),
-        axios.get(`${TASKS_URL}/upcoming`, config),
+        // axios.get(`${TASKS_URL}/upcoming`, config),
+        axios.get(`${TASKS_URL}`, config), // Fetch ALL tasks to build the complete Maintenance Log
       ]);
       setDevices(devicesRes.data);
       setUpcomingTasks(tasksRes.data);
@@ -164,6 +184,21 @@ const LifecycleScreen = () => {
   useEffect(() => {
     fetchData();
   }, [userInfo]);
+
+  const triggerSimulatedUpdate = async () => {
+    try {
+      // Sends the invisible command to your backend (Port 5000)
+      await axios.post(`${TASKS_URL}/admin/trigger-update`, {
+        targetBrand: "Apple",
+        taskName: "Critical macOS Sonoma Update",
+        description: "Apple released a zero-day patch. Please update.",
+        urgency: "High",
+      });
+      toast.info("📡 Manufacturer Update Triggered!");
+    } catch (err) {
+      toast.error("Failed to trigger update.");
+    }
+  };
 
   const handleRepairSubmit = async () => {
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
@@ -187,23 +222,49 @@ const LifecycleScreen = () => {
 
   const handleCompleteTask = async (taskId) => {
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+
+    // 1. Optimistic UI: Temporarily flag it for the "turn green" animation
+    setUpcomingTasks((prev) =>
+      prev.map((t) => (t._id === taskId ? { ...t, isCompleting: true } : t)),
+    );
+
     try {
       // 1. Update the task status in the database
       // We assume your taskRoutes/Controller handles PATCH/PUT for completion
-      await axios.patch(`${TASKS_URL}/${taskId}`, { isComplete: true }, config);
-
-      toast.success("Task marks as completed!");
-
-      // 2. Remove the task from the local state so it disappears immediately
-      setUpcomingTasks((prevTasks) =>
-        prevTasks.filter((task) => task._id !== taskId),
+      // await axios.patch(`${TASKS_URL}/${taskId}`, { isComplete: true }, config);
+      await axios.patch(
+        `${TASKS_URL}/${taskId}`,
+        { status: "completed" },
+        config,
       );
 
+      toast.success("Task marks as completed! 🚀");
+
+      // // 2. Remove the task from the local state so it disappears immediately
+      // setUpcomingTasks((prevTasks) =>
+      //   prevTasks.filter((task) => task._id !== taskId),
+      // );
+      // 2. Wait 400ms for the user to see the green checkmark, then move it to completed
+      setTimeout(() => {
+        setUpcomingTasks((prev) =>
+          prev.map((t) =>
+            t._id === taskId
+              ? { ...t, isComplete: true, isCompleting: false }
+              : t,
+          ),
+        );
+        fetchData(); // Sync health scores in the background
+      }, 400);
+
       // 3. Optional: Refresh inventory if completion affects health score
-      fetchData();
+      // fetchData();
     } catch (err) {
       console.error("EcoNova+ Task Error:", err);
       toast.error("Failed to update task");
+      // Revert animation on fail
+      setUpcomingTasks((prev) =>
+        prev.map((t) => (t._id === taskId ? { ...t, isCompleting: false } : t)),
+      );
     }
   };
 
@@ -253,9 +314,18 @@ const LifecycleScreen = () => {
     }
   };
 
+  // const displayedTasks = showAllTasks
+  //   ? upcomingTasks
+  //   : upcomingTasks.slice(0, 3);
+  // Filter out completed tasks so the Priority Queue only shows what needs attention
+  const pendingPriorityTasks = upcomingTasks.filter(
+    // (task) => task.status === "pending",
+    (task) => task.isComplete === false,
+  );
+
   const displayedTasks = showAllTasks
-    ? upcomingTasks
-    : upcomingTasks.slice(0, 3);
+    ? pendingPriorityTasks
+    : pendingPriorityTasks.slice(0, 3);
 
   if (!userInfo) return <div className="loading-screen">Authenticating...</div>;
 
@@ -274,6 +344,20 @@ const LifecycleScreen = () => {
                   Maximize performance, minimize e-waste.
                 </p>
               </div>
+              <button
+                onClick={triggerSimulatedUpdate}
+                style={{
+                  background: "#333",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                Admin: Simulate Update
+              </button>
               <button
                 className="btn-primary"
                 onClick={() => setIsAddModalOpen(true)}
@@ -307,7 +391,8 @@ const LifecycleScreen = () => {
               <div className="stat-card">
                 <div className="stat-header">
                   <Zap size={20} className="text-red" />
-                  <h3 className="text-red">{upcomingTasks.length}</h3>
+                  {/* <h3 className="text-red">{upcomingTasks.length}</h3> */}
+                  <h3 className="text-red">{pendingPriorityTasks.length}</h3>
                 </div>
                 <p>Priority Tasks</p>
               </div>
@@ -396,6 +481,7 @@ const LifecycleScreen = () => {
                             className="btn-maint"
                             onClick={() => {
                               setSelectedDevice(device);
+                              setMaintTab("pending");
                               setIsMaintModalOpen(true);
                               setChecklist({
                                 software: false,
@@ -475,7 +561,8 @@ const LifecycleScreen = () => {
                       );
                     })}
                   </div>
-                  {upcomingTasks.length > 3 && (
+                  {/* {upcomingTasks.length > 3 && ( */}
+                  {pendingPriorityTasks.length > 3 && (
                     <button
                       className="view-all-tasks"
                       onClick={() => setShowAllTasks(!showAllTasks)}
@@ -578,14 +665,14 @@ const LifecycleScreen = () => {
         </Modal>
 
         {/* MAINTENANCE MODAL */}
-        <Modal
+        {/* <Modal
           isOpen={isMaintModalOpen}
           className="compact-dialog"
           overlayClassName="modal-overlay"
           onRequestClose={() => setIsMaintModalOpen(false)}
         >
           <div className="modal-header">
-            <h3>Maintenance Log</h3>
+            <h3>{selectedDevice?.deviceName} Maintenance Log</h3>
             <button
               className="close-btn"
               onClick={() => setIsMaintModalOpen(false)}
@@ -593,7 +680,7 @@ const LifecycleScreen = () => {
               <X />
             </button>
           </div>
-          <div className="modal-body">
+          <div className="modal-body" style={{ maxHeight: '400px', overflowY: 'auto' }}>
             <div className="checklist-v2">
               {["software", "physical", "optimize"].map((type) => (
                 <div
@@ -630,6 +717,193 @@ const LifecycleScreen = () => {
               }}
             >
               Apply Health Boost
+            </button>
+          </div>
+        </Modal> */}
+        {/* MAINTENANCE MODAL (The Single Source of Truth) */}
+        <Modal
+          isOpen={isMaintModalOpen}
+          className="compact-dialog"
+          overlayClassName="modal-overlay"
+          onRequestClose={() => setIsMaintModalOpen(false)}
+        >
+          <div className="modal-header">
+            <h3>{selectedDevice?.deviceName} Maintenance Log</h3>
+            <button
+              className="close-btn"
+              onClick={() => setIsMaintModalOpen(false)}
+            >
+              <X />
+            </button>
+          </div>
+
+          {/* NEW: Clean Tab Navigation */}
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid #eee",
+              marginBottom: "10px",
+              marginTop: "-10px",
+            }}
+          >
+            <button
+              style={{
+                flex: 1,
+                padding: "12px",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  maintTab === "pending"
+                    ? "2px solid #10b981"
+                    : "2px solid transparent",
+                fontWeight: maintTab === "pending" ? "bold" : "normal",
+                color: maintTab === "pending" ? "#10b981" : "#888",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onClick={() => setMaintTab("pending")}
+            >
+              Pending Tasks
+            </button>
+            <button
+              style={{
+                flex: 1,
+                padding: "12px",
+                background: "none",
+                border: "none",
+                borderBottom:
+                  maintTab === "completed"
+                    ? "2px solid #10b981"
+                    : "2px solid transparent",
+                fontWeight: maintTab === "completed" ? "bold" : "normal",
+                color: maintTab === "completed" ? "#10b981" : "#888",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onClick={() => setMaintTab("completed")}
+            >
+              Completed History
+            </button>
+          </div>
+          <div
+            className="modal-body"
+            style={{ maxHeight: "400px", overflowY: "auto" }}
+          >
+            <div className="checklist-v2">
+              {/* Dynamically filter tasks that belong ONLY to this specific device */}
+              {upcomingTasks
+                .filter(
+                  (task) =>
+                    (task.device?._id || task.device) === selectedDevice?._id,
+                )
+                .filter((task) =>
+                  maintTab === "pending" ? !task.isComplete : task.isComplete,
+                )
+                .map((task) => (
+                  <div
+                    key={task._id}
+                    className={`check-row ${task.status === "completed" ? "active" : ""}`}
+                  >
+                    {/* If task is pending, clicking the circle completes it. If completed, it's disabled. */}
+                    <CheckCircle
+                      size={20}
+                      color={
+                        task.isCompleting || task.isComplete
+                          ? "#10b981"
+                          : "currentColor"
+                      }
+                      // style={{
+                      //   cursor:
+                      //     task.status === "completed" ? "default" : "pointer",
+                      //   flexShrink: 0,
+                      // }}
+                      style={{
+                        cursor: task.isComplete ? "default" : "pointer",
+                        flexShrink: 0,
+                        transition: "color 0.3s ease",
+                      }}
+                      onClick={() => {
+                        // if (task.status !== "completed") {
+                        //   handleCompleteTask(task._id);
+                        // }
+                        if (!task.isComplete && !task.isCompleting) {
+                          handleCompleteTask(task._id);
+                        }
+                      }}
+                    />
+                    <div>
+                      <label
+                        style={{
+                          textTransform: "capitalize",
+                          // textDecoration:
+                          //   task.status === "completed"
+                          //     ? "line-through"
+                          //     : "none",
+                          // display: "block",
+                          // marginBottom: "4px",
+                          textDecoration: task.isComplete
+                            ? "line-through"
+                            : "none",
+                          display: "block",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {task.taskName}
+                      </label>
+
+                      {/* Display task description or the due date */}
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: "12px",
+                          color: "#666",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {/* {task.status === "completed"
+                          ? "Completed ✓"
+                          : `Due: ${dayjs(task.dueDate).format("MMM D, YYYY")} - ${task.urgency || "Standard"} Priority`} */}
+                        {task.isComplete
+                          ? "Completed ✓"
+                          : `Due: ${dayjs(task.dueDate).format("MMM D, YYYY")} - ${task.urgency || "Standard"} Priority`}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+              {/* Empty State if the Cron job hasn't assigned tasks yet */}
+              {upcomingTasks.filter(
+                (task) =>
+                  (task.device?._id || task.device) === selectedDevice?._id,
+              ).length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "20 px",
+                    color: "#888",
+                  }}
+                >
+                  <ShieldCheck
+                    size={40}
+                    style={{ opacity: 0.5, marginBottom: "10px" }}
+                  />
+                  <p style={{ margin: "0 0 5px 0", fontWeight: "500" }}>
+                    No maintenance required currently.
+                  </p>
+                  <p style={{ fontSize: "12px", margin: 0 }}>
+                    Automated tasks will appear here based on manufacturer
+                    updates.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button
+              className="btn-finalize"
+              onClick={() => setIsMaintModalOpen(false)}
+            >
+              Close Log
             </button>
           </div>
         </Modal>
