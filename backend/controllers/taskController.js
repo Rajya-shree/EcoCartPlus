@@ -102,16 +102,20 @@ const getUpcomingTasks = asyncHandler(async (req, res) => {
 const completeTask = asyncHandler(async (req, res) => {
   const task = await DeviceTask.findById(req.params.id);
 
-  if (!task) {
-    res.status(404);
-    throw new Error("Task not found");
+  // if (!task) {
+  //   res.status(404);
+  //   throw new Error("Task not found");
+  // }
+  if (!task || task.user.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Task not found or User not authorized");
   }
 
-  // Verify ownership
-  if (task.user.toString() !== req.user._id.toString()) {
-    res.status(401);
-    throw new Error("User not authorized");
-  }
+  // // Verify ownership
+  // if (task.user.toString() !== req.user._id.toString()) {
+  //   res.status(401);
+  //   throw new Error("User not authorized");
+  // }
 
   // 1. Mark current task complete
   task.isComplete = true;
@@ -165,6 +169,33 @@ const getAllTasks = asyncHandler(async (req, res) => {
   const tasks = await DeviceTask.find({ user: req.user._id })
     .sort({ dueDate: 1 })
     .populate("device", "deviceName");
+
+  const today = new Date();
+
+  // 🟢 Generate notifications for any task that is currently overdue
+  await Promise.all(
+    tasks.map(async (task) => {
+      // Only notify if the task is NOT complete AND the due date is in the past
+      if (!task.isComplete && new Date(task.dueDate) < today) {
+        try {
+          const notificationExists = await Notification.findOne({
+            user: req.user._id,
+            task: task._id,
+          });
+
+          if (!notificationExists) {
+            await Notification.create({
+              user: req.user._id,
+              task: task._id,
+              message: `Task "${task.taskName}" for your ${task.device?.deviceName || "device"} is overdue!`,
+            });
+          }
+        } catch (err) {
+          console.error("Notification Error:", err.message);
+        }
+      }
+    }),
+  );
 
   res.status(200).json(tasks);
 });

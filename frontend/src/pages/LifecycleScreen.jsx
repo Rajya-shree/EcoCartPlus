@@ -318,9 +318,12 @@ const LifecycleScreen = () => {
   //   ? upcomingTasks
   //   : upcomingTasks.slice(0, 3);
   // Filter out completed tasks so the Priority Queue only shows what needs attention
+  const todayDate = dayjs();
   const pendingPriorityTasks = upcomingTasks.filter(
     // (task) => task.status === "pending",
-    (task) => task.isComplete === false,
+    (task) =>
+      task.isComplete === false &&
+      dayjs(task.dueDate).isBefore(todayDate.add(7, "day")),
   );
 
   const displayedTasks = showAllTasks
