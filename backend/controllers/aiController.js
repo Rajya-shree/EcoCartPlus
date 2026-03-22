@@ -25,6 +25,7 @@ const {
   generateRepairDiagnosis,
   evaluateProductSustainability,
 } = require("../services/aiService");
+const { getTaskActionSteps } = require("../services/groqService");
 
 // @desc    Handle AI repair diagnostic query
 // @route   POST /api/ai/diagnose
@@ -80,4 +81,17 @@ const diagnoseDevice = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { diagnoseDevice };
+const generateTaskSteps = asyncHandler(async (req, res) => {
+  const { taskName, deviceName } = req.body;
+
+  if (!taskName || !deviceName) {
+    res.status(400);
+    throw new Error("Missing taskName or deviceName");
+  }
+
+  const steps = await getTaskActionSteps(taskName, deviceName);
+  
+  res.status(200).json({ success: true, steps });
+});
+
+module.exports = { diagnoseDevice, generateTaskSteps };

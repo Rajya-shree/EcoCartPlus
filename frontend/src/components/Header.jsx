@@ -1,11 +1,12 @@
 // components/Header.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { generateMaintenanceReminders } from "../utils/maintenance.js";
 import { LIFECYCLE_URL, NOTIFICATIONS_URL } from "../utils/constants";
 import { toast } from "react-toastify";
+import NotificationDropdown from "./NotificationDropdown";
 
 // Material UI Imports
 import {
@@ -24,37 +25,81 @@ import SmartToyIcon from "@mui/icons-material/SmartToy"; // 🟢 Added for Repai
 
 const Header = () => {
   const { userInfo, logout } = useAuth();
+  //const [notificationCount, setNotificationCount] = useState(0);
   const navigate = useNavigate();
-  const [notificationCount, setNotificationCount] = useState(0);
+  // 🟢 Cleaned up States - Only these are needed!
+  const [notifications, setNotifications] = useState([]);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
 
-  const checkNotifications = async () => {
+  const fetchUnreadNotifications = async () => {
     if (!userInfo) return;
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-      const { data } = await axios.get(LIFECYCLE_URL, config);
-
-      // Logic to check if any device in 'data' needs attention
-      const needsAttention = data.filter(
-        (device) => device.status === "Needs Maintenance",
-      );
-      setNotificationCount(needsAttention.length);
-
-      let totalPending = 0;
-      data.forEach((device) => {
-        const tasks = generateMaintenanceReminders(device.purchaseDate);
-        if (tasks.length > 0) totalPending += tasks.length;
-      });
-      setNotificationCount(totalPending);
+      // Fetch actual unread notifications from the database
+      const { data } = await axios.get(NOTIFICATIONS_URL, config);
+      setNotifications(data);
     } catch (err) {
-      console.error("Error checking notifications", err);
+      console.error("Error fetching notifications", err);
     }
   };
 
   useEffect(() => {
-    checkNotifications();
-    const interval = setInterval(checkNotifications, 300000);
-    return () => clearInterval(interval);
+    fetchUnreadNotifications();
+    // Poll every 1 minute instead of 5 for a snappier feel
+    const interval = setInterval(fetchUnreadNotifications, 60000);
+    window.addEventListener(
+      "forceNotificationRefresh",
+      fetchUnreadNotifications,
+    );
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(
+        "forceNotificationRefresh",
+        fetchUnreadNotifications,
+      );
+    };
   }, [userInfo]);
+
+  // Close dropdown if user clicks outside of it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // const checkNotifications = async () => {
+  //   if (!userInfo) return;
+  //   try {
+  //     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+  //     const { data } = await axios.get(LIFECYCLE_URL, config);
+
+  //     // Logic to check if any device in 'data' needs attention
+  //     const needsAttention = data.filter(
+  //       (device) => device.status === "Needs Maintenance",
+  //     );
+  //     setNotificationCount(needsAttention.length);
+
+  //     let totalPending = 0;
+  //     data.forEach((device) => {
+  //       const tasks = generateMaintenanceReminders(device.purchaseDate);
+  //       if (tasks.length > 0) totalPending += tasks.length;
+  //     });
+  //     setNotificationCount(totalPending);
+  //   } catch (err) {
+  //     console.error("Error checking notifications", err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   checkNotifications();
+  //   const interval = setInterval(checkNotifications, 300000);
+  //   return () => clearInterval(interval);
+  // }, [userInfo]);
 
   const logoutHandler = () => {
     logout();
@@ -140,15 +185,57 @@ const Header = () => {
           {/* User Actions Section */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {userInfo ? (
+              // <>
+              //   <IconButton
+              //     onClick={() => navigate("/lifecycle")}
+              //     color="inherit"
+              //   >
+              //     <Badge badgeContent={notificationCount} color="error">
+              //       <NotificationsIcon />
+              //     </Badge>
+              //   </IconButton>
+
+              //   <Typography
+              //     sx={{
+              //       ml: 1,
+              //       mr: 2,
+              //       fontWeight: 500,
+              //       display: { xs: "none", lg: "block" },
+              //     }}
+              //   >
+              //     Hi, {userInfo.username}
+              //   </Typography>
+
+              //   <IconButton
+              //     onClick={logoutHandler}
+              //     color="primary"
+              //     title="Logout"
+              //   >
+              //     <LogoutIcon />
+              //   </IconButton>
+              // </>
               <>
-                <IconButton
-                  onClick={() => navigate("/lifecycle")}
-                  color="inherit"
-                >
-                  <Badge badgeContent={notificationCount} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
+                {/* 🟢 THIS IS THE FIXED NOTIFICATION BELL AND DROPDOWN */}
+                <Box ref={notifRef} sx={{ position: "relative" }}>
+                  <IconButton
+                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                    color="inherit"
+                  >
+                    <Badge badgeContent={notifications.length} color="error">
+                      <NotificationsIcon />
+                    </Badge>
+                  </IconButton>
+
+                  {/* Render the dropdown when clicked */}
+                  {isNotifOpen && (
+                    <NotificationDropdown
+                      userInfo={userInfo}
+                      notifications={notifications}
+                      setNotifications={setNotifications}
+                      onClose={() => setIsNotifOpen(false)}
+                    />
+                  )}
+                </Box>
 
                 <Typography
                   sx={{

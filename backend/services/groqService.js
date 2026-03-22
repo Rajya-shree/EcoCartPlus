@@ -256,4 +256,36 @@ TONE & STYLE: Speak like a friendly human expert. Use conversational transitions
   }
 };
 
-module.exports = { getRepairAdvice };
+// Add this new function to handle Task Action Steps
+const getTaskActionSteps = async (taskName, deviceName) => {
+  const prompt = `Give me exactly 3 short, simple, and actionable steps to perform the maintenance task "${taskName}" on a "${deviceName}".
+  Return ONLY a valid JSON array of strings. Do not include markdown formatting, conversational text, or backticks.
+  Example output: ["First step here.", "Second step here.", "Third step here."]`;
+
+  try {
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama3-8b-8192", // Fast model for quick UI loading
+      temperature: 0.2, // Low temp for consistent formatting
+    });
+
+    let content = chatCompletion.choices[0]?.message?.content || "[]";
+    // Strip markdown formatting if Groq accidentally includes it
+    content = content
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Groq AI Task Steps Error:", error);
+    // Fallback if the AI fails or JSON parsing fails
+    return [
+      "Consult device manual.",
+      "Ensure device is powered off.",
+      "Proceed with caution.",
+    ];
+  }
+};
+
+module.exports = { getRepairAdvice, getTaskActionSteps };

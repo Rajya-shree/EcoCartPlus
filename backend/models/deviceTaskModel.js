@@ -47,7 +47,12 @@ const deviceTaskSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
+);
+// Automatically delete documents 90 days (in seconds) after 'completedAt' is set
+deviceTaskSchema.index(
+  { completedAt: 1 },
+  { expireAfterSeconds: 90 * 24 * 60 * 60 },
 );
 
 module.exports = mongoose.model("DeviceTask", deviceTaskSchema);

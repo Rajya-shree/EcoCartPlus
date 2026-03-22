@@ -7,7 +7,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 const express = require("express");
 const mongoose = require("mongoose");
-const { startAutomation } = require('./utils/automationEngine');
+const { startAutomation } = require("./utils/automationEngine");
 const cors = require("cors");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;

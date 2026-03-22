@@ -159,6 +159,62 @@ const LifecycleScreen = () => {
     optimize: false,
   });
 
+  const [aiInstructions, setAiInstructions] = useState({});
+  const [isLoadingInstructions, setIsLoadingInstructions] = useState({});
+
+  // Add this near your other functions in LifecycleScreen.jsx
+  const handleSimulateUpdate = async () => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+      await axios.post(
+        "/api/tasks/admin/trigger-update",
+        {
+          taskName: "System Alert",
+          description: "Thermal thresholds approaching limit for MacBook.",
+          urgency: "High",
+        },
+        config,
+      );
+
+      toast.success("Admin Alert Sent! Check your bell icon.");
+      await fetchData();
+      window.dispatchEvent(new Event("forceNotificationRefresh"));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to trigger alert.");
+    }
+  };
+
+  const fetchTaskInstructions = async (taskId, taskName, deviceName) => {
+    // Toggle the accordion if it's already open
+    if (expandedTaskId === taskId) {
+      setExpandedTaskId(null);
+      return;
+    }
+
+    setExpandedTaskId(taskId);
+
+    // If we already fetched instructions for this task, don't fetch again
+    if (aiInstructions[taskId]) return;
+
+    setIsLoadingInstructions((prev) => ({ ...prev, [taskId]: true }));
+
+    try {
+      const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+      const { data } = await axios.post(
+        "/api/ai/task-steps", // Ensure this matches your route setup
+        { taskName, deviceName },
+        config,
+      );
+
+      setAiInstructions((prev) => ({ ...prev, [taskId]: data.steps }));
+    } catch (err) {
+      toast.error("Failed to load AI instructions");
+    } finally {
+      setIsLoadingInstructions((prev) => ({ ...prev, [taskId]: false }));
+    }
+  };
+
   const isAnyModalOpen =
     isAddModalOpen ||
     isMaintModalOpen ||
@@ -185,20 +241,20 @@ const LifecycleScreen = () => {
     fetchData();
   }, [userInfo]);
 
-  const triggerSimulatedUpdate = async () => {
-    try {
-      // Sends the invisible command to your backend (Port 5000)
-      await axios.post(`${TASKS_URL}/admin/trigger-update`, {
-        targetBrand: "Apple",
-        taskName: "Critical macOS Sonoma Update",
-        description: "Apple released a zero-day patch. Please update.",
-        urgency: "High",
-      });
-      toast.info("📡 Manufacturer Update Triggered!");
-    } catch (err) {
-      toast.error("Failed to trigger update.");
-    }
-  };
+  // const triggerSimulatedUpdate = async () => {
+  //   try {
+  //     // Sends the invisible command to your backend (Port 5000)
+  //     await axios.post(`${TASKS_URL}/admin/trigger-update`, {
+  //       targetBrand: "Apple",
+  //       taskName: "Critical macOS Sonoma Update",
+  //       description: "Apple released a zero-day patch. Please update.",
+  //       urgency: "High",
+  //     });
+  //     toast.info("📡 Manufacturer Update Triggered!");
+  //   } catch (err) {
+  //     toast.error("Failed to trigger update.");
+  //   }
+  // };
 
   const handleRepairSubmit = async () => {
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
@@ -348,7 +404,7 @@ const LifecycleScreen = () => {
                 </p>
               </div>
               <button
-                onClick={triggerSimulatedUpdate}
+                onClick={handleSimulateUpdate}
                 style={{
                   background: "#333",
                   color: "#fff",
@@ -364,6 +420,7 @@ const LifecycleScreen = () => {
               <button
                 className="btn-primary"
                 onClick={() => setIsAddModalOpen(true)}
+                // onClick={handleSimulateUpdate}
               >
                 <PlusCircle size={18} /> Log Hardware
               </button>
@@ -532,9 +589,16 @@ const LifecycleScreen = () => {
                             <div className="task-actions">
                               <button
                                 className={`btn-info ${isExpanded ? "active" : ""}`}
+                                // onClick={() =>
+                                //   setExpandedTaskId(
+                                //     isExpanded ? null : task._id,
+                                //   )
+                                // }
                                 onClick={() =>
-                                  setExpandedTaskId(
-                                    isExpanded ? null : task._id,
+                                  fetchTaskInstructions(
+                                    task._id,
+                                    task.taskName,
+                                    task.device?.deviceName,
                                   )
                                 }
                               >
@@ -551,13 +615,28 @@ const LifecycleScreen = () => {
                           {isExpanded && (
                             <div className="task-instructions animate-slide-down">
                               <h6>How to complete:</h6>
-                              <ul>
+                              {/* <ul>
                                 {instructions.map((step, idx) => (
                                   <li key={idx}>
                                     <CheckCircle2 size={12} /> {step}
                                   </li>
                                 ))}
-                              </ul>
+                              </ul> */}
+                              {isLoadingInstructions[task._id] ? (
+                                <p style={{ fontSize: "12px", color: "#888" }}>
+                                  Analyzing device protocol...
+                                </p>
+                              ) : (
+                                <ul>
+                                  {(aiInstructions[task._id] || []).map(
+                                    (step, idx) => (
+                                      <li key={idx}>
+                                        <CheckCircle2 size={12} /> {step}
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              )}
                             </div>
                           )}
                         </div>
@@ -632,6 +711,7 @@ const LifecycleScreen = () => {
                 <option>Smartphone</option>
                 <option>Laptop</option>
                 <option>Monitor</option>
+                <option>Tablet</option>
               </select>
             </div>
             <div className="form-group">
