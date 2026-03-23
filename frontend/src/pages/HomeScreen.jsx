@@ -19,15 +19,62 @@ import {
 import "./HomeScreen.css";
 import { BASE_URL } from "../utils/constants";
 
+const INSIGHTS = [
+  {
+    id: 1,
+    quote:
+      "Sustainable asset lifecycle management prevents 50M tons of hazardous e-waste globally every year.",
+    desktop:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1600&h=400&fit=crop",
+    tablet:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800&h=400&fit=crop",
+    mobile:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=600&h=600&fit=crop",
+  },
+  {
+    id: 2,
+    quote:
+      "Repairing a single device saves up to 80kg of CO2 emissions compared to manufacturing a new one.",
+    desktop:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1600&h=400&fit=crop",
+    tablet:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800&h=400&fit=crop",
+    mobile:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600&h=600&fit=crop",
+  },
+  {
+    id: 3,
+    quote:
+      "The circular economy isn't just about recycling; it's about extending the heartbeat of our technology.",
+    desktop:
+      "https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=1600&h=400&fit=crop",
+    tablet:
+      "https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=800&h=400&fit=crop",
+    mobile:
+      "https://images.unsplash.com/photo-1426604966848-d7adac402bff?q=80&w=600&h=600&fit=crop",
+  },
+];
 
 const HomeScreen = () => {
   const { devices = [] } = useOutletContext();
   const navigate = useNavigate();
+  // Moving Slide
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return; // Pause slider when user hovers/holds
+
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % INSIGHTS.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(timer);
+  }, [isPaused]);
 
   // 🟢 NEW STATE: For Vaulted Sessions
   const [savedSessions, setSavedSessions] = useState([]);
   const [loadingVault, setLoadingVault] = useState(true);
-  
 
   // 🟢 FETCH VAULT DATA
   useEffect(() => {
@@ -328,6 +375,63 @@ const HomeScreen = () => {
         </p>
       </header>
 
+      {/* 🟢 NEW: FULL-WIDTH DYNAMIC SLIDER INSERTED HERE */}
+      <div
+        className="insight-hero-slider"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
+        {INSIGHTS.map((insight, index) => (
+          <div
+            key={insight.id}
+            className={`insight-slide ${index === currentSlide ? "active" : ""}`}
+          >
+            {/* Responsive Images using Picture Tag */}
+            <picture>
+              <source media="(max-width: 600px)" srcSet={insight.mobile} />
+              <source media="(max-width: 1024px)" srcSet={insight.tablet} />
+              <img
+                src={insight.desktop}
+                alt="Nature Background"
+                className="slide-bg"
+              />
+            </picture>
+
+            {/* Dark Overlay for Text Readability */}
+            <div className="slide-overlay"></div>
+
+            {/* Content */}
+            <div className="slide-content">
+              <div className="slide-badge">
+                <Leaf size={14} />
+                <span>ENVIRONMENT INSIGHT</span>
+              </div>
+
+              <h2 className="slide-quote">"{insight.quote}"</h2>
+
+              <div className="slide-footer">
+                <div className="directive-bar"></div>
+                <span>INTELLIGENCE DIRECTIVE</span>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Pagination Dots */}
+        <div className="slider-dots">
+          {INSIGHTS.map((_, idx) => (
+            <button
+              key={idx}
+              className={`dot ${idx === currentSlide ? "active" : ""}`}
+              onClick={() => setCurrentSlide(idx)}
+            />
+          ))}
+        </div>
+      </div>
+      {/* 🟢 END OF SLIDER */}
+
       <div className="hub-layout-grid">
         {/* LEFT COLUMN: Stats & Priority Queue OR Empty State */}
         <div className="hub-main-col">
@@ -512,7 +616,7 @@ const HomeScreen = () => {
           </div>
 
           {/* 2. Insight Widget */}
-          <div className="insight-widget">
+          {/* <div className="insight-widget">
             <Leaf className="leaf-icon" />
             <h4 className="insight-tag">Environment Insight</h4>
             <p className="insight-text">
@@ -524,7 +628,7 @@ const HomeScreen = () => {
               <span>Intelligence Directive</span>
             </div>
             <Zap className="bg-zap-icon" />
-          </div>
+          </div> */}
         </aside>
       </div>
     </div>
