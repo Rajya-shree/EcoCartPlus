@@ -3,14 +3,13 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import {
   ArrowUpRight,
-  Wrench,
-  ShieldCheck,
   Search,
   Zap,
   ChevronRight,
   Leaf,
   History,
-  AlertCircle,
+  Wrench,
+  ShieldCheck,
   TrendingUp,
   Recycle,
   Smartphone,
@@ -55,48 +54,50 @@ const INSIGHTS = [
   },
 ];
 
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 const HomeScreen = () => {
   const { devices = [] } = useOutletContext();
   const navigate = useNavigate();
-  // Moving Slide
+
+  /* ── Slider ── */
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return; // Pause slider when user hovers/holds
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % INSIGHTS.length);
-    }, 5000); // Change slide every 5 seconds
-
+    if (isPaused) return;
+    const timer = setInterval(
+      () => setCurrentSlide((p) => (p + 1) % INSIGHTS.length),
+      5000,
+    );
     return () => clearInterval(timer);
   }, [isPaused]);
 
-  // 🟢 NEW STATE: For Vaulted Sessions
+  /* ── Vault ── */
   const [savedSessions, setSavedSessions] = useState([]);
   const [loadingVault, setLoadingVault] = useState(true);
 
-  // 🟢 FETCH VAULT DATA
   useEffect(() => {
     const fetchVault = async () => {
       try {
-        const userInfoString = localStorage.getItem("userInfo");
-        if (!userInfoString) return console.log("No user found in storage");
-
-        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        const raw = localStorage.getItem("userInfo");
+        if (!raw) return;
+        const userInfo = JSON.parse(raw);
         if (!userInfo) return;
-
         const config = {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         };
-
-        // const { data } = await axios.get("/api/conversations/vault", config);
         const { data } = await axios.get(
           `${BASE_URL}/conversations/vault`,
           config,
         );
-        console.log("Vault sessions found:", data.length);
-        setSavedSessions(data.slice(0, 5)); // Show latest 5
+        setSavedSessions(data || []);
       } catch (err) {
         console.error("Vault fetch failed", err);
       } finally {
@@ -106,7 +107,7 @@ const HomeScreen = () => {
     fetchVault();
   }, []);
 
-  // Dynamic calculations from your current logic
+  /* ── Dynamic Calculations ── */
   const totalRepairs = devices.reduce(
     (acc, dev) => acc + (dev.repairsDone || 0),
     0,
@@ -119,7 +120,6 @@ const HomeScreen = () => {
         ).toFixed(0)
       : 0;
 
-  // Tasks logic adjusted for Command Hub Priority Queue
   const pendingTasks = devices
     .flatMap((dev) =>
       (dev.maintenanceTasks || [])
@@ -130,244 +130,9 @@ const HomeScreen = () => {
 
   const isEmpty = devices.length === 0;
 
-  // return (
-  //   <div className="command-hub-container animate-in">
-  //     <header className="hub-header">
-  //       <h1 className="hub-title">Command Hub</h1>
-  //       <p className="hub-subtitle">
-  //         Platform oversight and asset lifecycle synchronization.
-  //       </p>
-  //     </header>
-
-  //     {isEmpty ? (
-  //       <div className="empty-state-grid">
-  //         <div
-  //           className="action-card group"
-  //           onClick={() => navigate("/green-shopping")}
-  //         >
-  //           <div className="icon-box-emerald">
-  //             <Search size={32} />
-  //           </div>
-  //           <h3>Green Advisor</h3>
-  //           <p>
-  //             Audit sustainability metrics and lifecycle repairability for
-  //             hardware assets.
-  //           </p>
-  //           <div className="action-footer">
-  //             Launch Search <ArrowUpRight size={18} />
-  //           </div>
-  //         </div>
-
-  //         <div
-  //           className="action-card group"
-  //           onClick={() => navigate("/diagnosis")}
-  //         >
-  //           <div className="icon-box-emerald">
-  //             <Zap size={32} />
-  //           </div>
-  //           <h3>Repair AI</h3>
-  //           <p>
-  //             Consult technical restoration protocols and diagnostic logic for
-  //             hardware faults.
-  //           </p>
-  //           <div className="action-footer">
-  //             Consult Intelligence <ArrowUpRight size={18} />
-  //           </div>
-  //         </div>
-  //         {/* New Monitoring Grid for Specific Needs */}
-  //         <div className="hub-metrics-grid animate-in">
-  //           <div className="metric-card">
-  //             <div className="metric-header">
-  //               <AlertCircle className="text-rose-500" size={18} />
-  //               <span>Urgent Fixes</span>
-  //             </div>
-  //             <div className="metric-value">
-  //               {devices.filter((d) => d.ecoScore < 50).length}
-  //             </div>
-  //             <p className="metric-desc">
-  //               Critical hardware assets requiring restoration.
-  //             </p>
-  //           </div>
-
-  //           <div className="metric-card">
-  //             <div className="metric-header">
-  //               <Leaf className="text-emerald-500" size={18} />
-  //               <span>Green Savings</span>
-  //             </div>
-  //             <div className="metric-value">₹4,200</div>
-  //             <p className="metric-desc">
-  //               Estimated value saved through DIY repairs.
-  //             </p>
-  //           </div>
-  //         </div>
-
-  //         {/* Existing Action Cards follow below... */}
-  //       </div>
-  //     ) : (
-  //       <div className="hub-layout-grid">
-  //         {/* Left Column: Stats & Priority Queue */}
-  //         <div className="hub-main-col">
-  //           {/* 4-Column Stats Row */}
-  //           <div className="stats-row">
-  //             {[
-  //               {
-  //                 label: "E-Waste Saved",
-  //                 value: "12.4kg",
-  //                 icon: <Recycle />,
-  //                 color: "emerald",
-  //               },
-  //               {
-  //                 label: "Repairs Done",
-  //                 value: totalRepairs,
-  //                 icon: <TrendingUp />,
-  //                 color: "orange",
-  //               },
-  //               {
-  //                 label: "Repair Score",
-  //                 value: `${avgEcoScore}/100`,
-  //                 icon: <Zap />,
-  //                 color: "blue",
-  //               },
-  //               {
-  //                 label: "Active Devices",
-  //                 value: devices.length,
-  //                 icon: <Smartphone />,
-  //                 color: "purple",
-  //               },
-  //             ].map((stat, i) => (
-  //               <div key={i} className={`stat-pill ${stat.color}`}>
-  //                 <div className="stat-icon">{stat.icon}</div>
-  //                 <div className="stat-info">
-  //                   <span className="stat-label">{stat.label}</span>
-  //                   <span className="stat-value">{stat.value}</span>
-  //                 </div>
-  //               </div>
-  //             ))}
-  //           </div>
-
-  //           {/* Priority Queue Section */}
-  //           <section className="hub-section">
-  //             <div className="section-header">
-  //               <div>
-  //                 <h3>Priority Queue</h3>
-  //                 <p className="tagline">Active Maintenance Nodes</p>
-  //               </div>
-  //               {pendingTasks.length > 0 && (
-  //                 <span className="status-badge-rose">
-  //                   {pendingTasks.length} Tasks Pending
-  //                 </span>
-  //               )}
-  //             </div>
-
-  //             <div className="task-list">
-  //               {pendingTasks.length === 0 ? (
-  //                 <div className="operational-state">
-  //                   <ShieldCheck size={48} className="text-emerald" />
-  //                   <h4>System Operational</h4>
-  //                   <p>Lifecycle health is within optimal parameters.</p>
-  //                 </div>
-  //               ) : (
-  //                 pendingTasks.map((task, idx) => (
-  //                   <div
-  //                     key={idx}
-  //                     className="task-item"
-  //                     onClick={() => navigate("/lifecycle")}
-  //                   >
-  //                     <div className="task-left">
-  //                       <div className="task-icon-bg">
-  //                         <Wrench size={20} />
-  //                       </div>
-  //                       <div>
-  //                         <h4>{task.label || "General Maintenance"}</h4>
-  //                         <p className="task-meta">{task.deviceName}</p>
-  //                       </div>
-  //                     </div>
-  //                     <button className="chevron-btn">
-  //                       <ChevronRight size={20} />
-  //                     </button>
-  //                   </div>
-  //                 ))
-  //               )}
-  //             </div>
-  //           </section>
-  //         </div>
-
-  //         {/* Right Column: Insight Widget */}
-  //         {/* <aside className="hub-side-col">
-  //           <div className="insight-widget">
-  //             <Leaf className="leaf-icon" />
-  //             <h4 className="insight-tag">Environment Insight</h4>
-  //             <p className="insight-text">
-  //               "Sustainable asset lifecycle management prevents 50M tons of
-  //               hazardous e-waste globally every year."
-  //             </p>
-  //             <div className="insight-footer">
-  //               <div className="accent-line" />
-  //               <span>Intelligence Directive</span>
-  //             </div>
-  //             <Zap className="bg-zap-icon" />
-  //           </div>
-  //         </aside> */}
-  //         {/* 🟢 UPDATED RIGHT COLUMN: Insight + Technical Vault */}
-  //         <aside className="hub-side-col">
-  //           {/* 1. Technical Vault Widget */}
-  //           <div className="vault-widget-card">
-  //             <div className="vault-card-header">
-  //               <History size={18} className="text-emerald-500" />
-  //               <h3>Technical Vault</h3>
-  //             </div>
-
-  //             <div className="vault-list">
-  //               {loadingVault ? (
-  //                 <div className="vault-loading">Synchronizing Nodes...</div>
-  //               ) : savedSessions.length === 0 ? (
-  //                 <div className="vault-empty">
-  //                   <MessageSquare size={32} />
-  //                   <p>No vaulted sessions detected.</p>
-  //                 </div>
-  //               ) : (
-  //                 savedSessions.map((session) => (
-  //                   <div
-  //                     key={session._id}
-  //                     className="vault-item"
-  //                     onClick={() => navigate(`/diagnosis?id=${session._id}`)} // 🟢 Navigate to specific session
-  //                   >
-  //                     <div className="vault-info">
-  //                       <span className="vault-title">{session.title}</span>
-  //                       <span className="vault-date">
-  //                         {new Date(session.updatedAt).toLocaleDateString()}
-  //                       </span>
-  //                     </div>
-  //                     <ChevronRight size={16} />
-  //                   </div>
-  //                 ))
-  //               )}
-  //             </div>
-  //             <button
-  //               className="view-all-vault"
-  //               onClick={() => navigate("/vault-archives")}
-  //             >
-  //               Access Full Archives
-  //             </button>
-  //           </div>
-
-  //           {/* 2. Insight Widget (Your existing one) */}
-  //           <div className="insight-widget">
-  //             <Leaf className="leaf-icon" />
-  //             <h4 className="insight-tag">Environment Insight</h4>
-  //             <p className="insight-text">
-  //               "Sustainable asset lifecycle management prevents 50M tons of
-  //               hazardous e-waste globally."
-  //             </p>
-  //             <Zap className="bg-zap-icon" />
-  //           </div>
-  //         </aside>
-  //       </div>
-  //     )}
-  //   </div>
-  // );
   return (
     <div className="command-hub-container animate-in">
+      {/* ── Header ── */}
       <header className="hub-header">
         <h1 className="hub-title">Command Hub</h1>
         <p className="hub-subtitle">
@@ -375,6 +140,53 @@ const HomeScreen = () => {
         </p>
       </header>
 
+      {/* ── HERO SLIDER ──
+      <div
+        className="insight-hero-slider"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
+        {INSIGHTS.map((insight, index) => (
+          <div
+            key={insight.id}
+            className={`insight-slide ${index === currentSlide ? "active" : ""}`}
+          >
+            <picture>
+              <source media="(max-width: 600px)" srcSet={insight.mobile} />
+              <source media="(max-width: 1024px)" srcSet={insight.tablet} />
+              <img
+                src={insight.desktop}
+                alt="Nature Background"
+                className="slide-bg"
+              />
+            </picture>
+            <div className="slide-overlay" />
+            <div className="slide-content">
+              <div className="slide-badge">
+                <Leaf size={14} />
+                <span>ENVIRONMENT INSIGHT</span>
+              </div>
+              <h2 className="slide-quote">"{insight.quote}"</h2>
+              <div className="slide-footer">
+                <div className="directive-bar" />
+                <span>INTELLIGENCE DIRECTIVE</span>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <div className="slider-dots">
+          {INSIGHTS.map((_, idx) => (
+            <button
+              key={idx}
+              className={`dot ${idx === currentSlide ? "active" : ""}`}
+              onClick={() => setCurrentSlide(idx)}
+            />
+          ))}
+        </div>
+      </div> */}
       {/* 🟢 NEW: FULL-WIDTH DYNAMIC SLIDER INSERTED HERE */}
       <div
         className="insight-hero-slider"
@@ -432,204 +244,148 @@ const HomeScreen = () => {
       </div>
       {/* 🟢 END OF SLIDER */}
 
-      <div className="hub-layout-grid">
-        {/* LEFT COLUMN: Stats & Priority Queue OR Empty State */}
-        <div className="hub-main-col">
-          {isEmpty ? (
-            <div className="empty-state-inner-grid">
-              <div
-                className="action-card group"
-                onClick={() => navigate("/green-shopping")}
-              >
-                <div className="icon-box-emerald">
-                  <Search size={32} />
-                </div>
-                <h3>Green Advisor</h3>
-                <p>
-                  Audit sustainability metrics and lifecycle repairability for
-                  hardware assets.
-                </p>
-                <div className="action-footer">
-                  Launch Search <ArrowUpRight size={18} />
-                </div>
-              </div>
+      {/* ── FEATURE CARDS (3-column) ── */}
+      <div className="feature-cards-grid">
+        {/* Green Advisor */}
+        <div
+          className="linear-feature-card"
+          onClick={() => navigate("/green-shopping")}
+        >
+          <div className="card-main-content">
+            <div className="linear-icon-box icon-green">
+              <Search size={18} />
+            </div>
+            <h3>Green Advisor</h3>
+            <p>
+              Audit sustainability metrics and lifecycle repairability for
+              hardware assets.
+            </p>
+            <div className="card-status">
+              <span className="status-dot" />
+              <span className="status-text">
+                Last searched: <strong>iPhone 15</strong>
+                &nbsp;&middot;&nbsp; 2 days ago
+              </span>
+            </div>
+          </div>
+          <div className="card-footer-action">
+            LAUNCH SEARCH <ArrowUpRight size={16} className="arrow-icon" />
+          </div>
+        </div>
 
-              <div
-                className="action-card group"
-                onClick={() => navigate("/diagnosis")}
-              >
-                <div className="icon-box-emerald">
-                  <Zap size={32} />
+        {/* Repair AI */}
+        <div
+          className="linear-feature-card"
+          onClick={() => navigate("/diagnosis")}
+        >
+          <div className="card-main-content">
+            <div className="linear-icon-box icon-blue">
+              <Zap size={18} />
+            </div>
+            <h3>Repair AI</h3>
+            <p>
+              Consult technical restoration protocols and diagnostic logic for
+              hardware faults.
+            </p>
+            <div className="card-status">
+              <span className="status-dot" />
+              <span className="status-text">
+                Last diagnosed: <strong>Screen crack</strong>
+                &nbsp;&middot;&nbsp; 1 day ago
+              </span>
+            </div>
+          </div>
+          <div className="card-footer-action">
+            CONSULT INTEL <ArrowUpRight size={16} className="arrow-icon" />
+          </div>
+        </div>
+
+        {/* Lifecycle Engine */}
+        <div
+          className="linear-feature-card"
+          onClick={() => navigate("/lifecycle")}
+        >
+          <div className="card-main-content">
+            <div className="linear-icon-box icon-orange">
+              <Wrench size={18} />
+            </div>
+            <h3>Lifecycle Engine</h3>
+            <p>
+              Track hardware health, manage inventory, and execute automated
+              maintenance.
+            </p>
+            <div className="card-status">
+              <span className="status-dot" />
+              <span className="status-text">
+                Active nodes: <strong>{devices.length} Devices</strong>
+                &nbsp;&middot;&nbsp; Nominal
+              </span>
+            </div>
+          </div>
+          <div className="card-footer-action">
+            MANAGE ASSETS <ArrowUpRight size={16} className="arrow-icon" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── TECHNICAL VAULT (Full-Width Bottom) ── */}
+      <div className="light-vault-card full-width-vault">
+        <div className="vault-card-header">
+          <div className="vault-header-left">
+            <History size={18} />
+            <h3>TECHNICAL VAULT</h3>
+          </div>
+          <span className="vault-header-sub">AI diagnostic sessions</span>
+        </div>
+
+        {/* Fixed-height scrollable list */}
+        <div className="vault-scroll-body">
+          {loadingVault ? (
+            <div className="vault-skeleton">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="vault-skel-row">
+                  <div
+                    className="vault-skel-title"
+                    style={{ width: `${52 + i * 9}%` }}
+                  />
+                  <div className="vault-skel-date" />
                 </div>
-                <h3>Repair AI</h3>
-                <p>
-                  Consult technical restoration protocols and diagnostic logic
-                  for hardware faults.
-                </p>
-                <div className="action-footer">
-                  Consult Intelligence <ArrowUpRight size={18} />
-                </div>
-              </div>
+              ))}
+            </div>
+          ) : savedSessions.length === 0 ? (
+            <div className="vault-empty">
+              <MessageSquare size={24} className="vault-empty-icon" />
+              <p>No vaulted sessions detected.</p>
+              <span>Your AI diagnostic sessions will appear here.</span>
             </div>
           ) : (
-            <>
-              {/* 4-Column Stats Row */}
-              <div className="stats-row">
-                {[
-                  {
-                    label: "E-Waste Saved",
-                    value: "12.4kg",
-                    icon: <Recycle />,
-                    color: "emerald",
-                  },
-                  {
-                    label: "Repairs Done",
-                    value: totalRepairs,
-                    icon: <TrendingUp />,
-                    color: "orange",
-                  },
-                  {
-                    label: "Repair Score",
-                    value: `${avgEcoScore}/100`,
-                    icon: <Zap />,
-                    color: "blue",
-                  },
-                  {
-                    label: "Active Devices",
-                    value: devices.length,
-                    icon: <Smartphone />,
-                    color: "purple",
-                  },
-                ].map((stat, i) => (
-                  <div key={i} className={`stat-pill ${stat.color}`}>
-                    <div className="stat-icon">{stat.icon}</div>
-                    <div className="stat-info">
-                      <span className="stat-label">{stat.label}</span>
-                      <span className="stat-value">{stat.value}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Priority Queue Section */}
-              <section className="hub-section">
-                <div className="section-header">
-                  <div>
-                    <h3>Priority Queue</h3>
-                    <p className="tagline">Active Maintenance Nodes</p>
-                  </div>
-                  {pendingTasks.length > 0 && (
-                    <span className="status-badge-rose">
-                      {pendingTasks.length} Tasks Pending
+            <div className="vault-list">
+              {savedSessions.map((session) => (
+                <div
+                  key={session._id}
+                  className="vault-item"
+                  onClick={() => navigate(`/diagnosis?id=${session._id}`)}
+                >
+                  <div className="vault-item-info">
+                    <span className="vault-title">{session.title}</span>
+                    <span className="vault-date">
+                      {formatDate(session.updatedAt)}
                     </span>
-                  )}
+                  </div>
+                  <ChevronRight size={16} className="vault-chevron" />
                 </div>
-
-                <div className="task-list">
-                  {pendingTasks.length === 0 ? (
-                    <div className="operational-state">
-                      <ShieldCheck size={48} className="text-emerald" />
-                      <h4>System Operational</h4>
-                      <p>Lifecycle health is within optimal parameters.</p>
-                    </div>
-                  ) : (
-                    pendingTasks.map((task, idx) => (
-                      <div
-                        key={idx}
-                        className="task-item"
-                        onClick={() => navigate("/lifecycle")}
-                      >
-                        <div className="task-left">
-                          <div className="task-icon-bg">
-                            <Wrench size={20} />
-                          </div>
-                          <div>
-                            <h4>{task.label || "General Maintenance"}</h4>
-                            <p className="task-meta">{task.deviceName}</p>
-                          </div>
-                        </div>
-                        <button className="chevron-btn">
-                          <ChevronRight size={20} />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-            </>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN: Technical Vault & Insight Widget (Always Visible) */}
-        <aside className="hub-side-col">
-          {/* 1. Technical Vault Widget */}
-          <div className="vault-widget-card">
-            <div className="vault-card-header">
-              <History size={18} className="text-emerald-500" />
-              <h3>Technical Vault</h3>
-            </div>
-
-            <div className="vault-list">
-              {loadingVault ? (
-                <div className="vault-loading">Synchronizing Nodes...</div>
-              ) : savedSessions.length === 0 ? (
-                <div
-                  className="vault-empty"
-                  style={{
-                    textAlign: "center",
-                    padding: "20px",
-                    color: "#94a3b8",
-                  }}
-                >
-                  <MessageSquare
-                    size={32}
-                    style={{ margin: "0 auto 10px", opacity: 0.5 }}
-                  />
-                  <p style={{ fontSize: "0.8rem" }}>
-                    No vaulted sessions detected.
-                  </p>
-                </div>
-              ) : (
-                savedSessions.map((session) => (
-                  <div
-                    key={session._id}
-                    className="vault-item"
-                    onClick={() => navigate(`/diagnosis?id=${session._id}`)}
-                  >
-                    <div className="vault-info">
-                      <span className="vault-title">{session.title}</span>
-                      <span className="vault-date">
-                        {new Date(session.updatedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <ChevronRight size={16} />
-                  </div>
-                ))
-              )}
-            </div>
-            <button
-              className="view-all-vault"
-              onClick={() => navigate("/vault-archives")}
-            >
-              Access Full Archives
-            </button>
-          </div>
-
-          {/* 2. Insight Widget */}
-          {/* <div className="insight-widget">
-            <Leaf className="leaf-icon" />
-            <h4 className="insight-tag">Environment Insight</h4>
-            <p className="insight-text">
-              "Sustainable asset lifecycle management prevents 50M tons of
-              hazardous e-waste globally every year."
-            </p>
-            <div className="insight-footer">
-              <div className="accent-line" />
-              <span>Intelligence Directive</span>
-            </div>
-            <Zap className="bg-zap-icon" />
-          </div> */}
-        </aside>
+        {/* Outside scroll box */}
+        <button
+          className="vault-footer-btn"
+          onClick={() => navigate("/vault-archives")}
+        >
+          ACCESS FULL ARCHIVES
+        </button>
       </div>
     </div>
   );
